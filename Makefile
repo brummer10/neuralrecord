@@ -91,9 +91,9 @@ plugins: libs
 
 ifneq ($(CROSS_COMPILING),true)
 gen: plugins dpf/utils/lv2_ttl_generator
-	@dpf/utils/generate-ttl.sh
+	@./dpf/utils/generate-ttl.sh
 ifeq ($(MACOS),true)
-	@dpf/utils/generate-vst-bundles.sh
+	@./dpf/utils/generate-vst-bundles.sh
 endif
 
 dpf/utils/lv2_ttl_generator:
