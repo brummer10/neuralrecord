@@ -4,12 +4,10 @@ A Neural Capture plug to make the process of cloning external soft/hardware a bi
 
 ## Formats
 
-All plugins in this collection come in the following plug-in formats:
+Neural Capture come in the following plug-in formats:
 
 * [LV2]
-* [VST2]
 * [VST3]
-* [CLAP]
 
 ## Compiling
 
@@ -44,9 +42,7 @@ You can also set the installation directory for each plugin format with a
 dedicated makefile variable.
 
 * LV2: `LV2_DIR` (`<prefix>/lib/lv2`)
-* VST2: `VST2_DIR` (`<prefix>/lib/vst`)
 * VST3: `VST3_DIR` (`<prefix>/lib/vst3`)
-* CLAP: `CLAP_DIR` (`<prefix>/lib/clap`)
 
 Example:
 
@@ -64,9 +60,7 @@ Again, you can also set the installation directory for each plugin format with
 a dedicated makefile variable.
 
 * LV2: `USER_LV2_DIR` (`$HOME/.lv2`)
-* VST2: `USER_VST2_DIR` (`$HOME/.vst`)
 * VST3: `USER_VST3_DIR` (`$HOME/.vst3`)
-* CLAP: `USER_CLAP_DIR` (`$HOME/.clap`)
 
 *Note: The given default values for all of the above listed environment
 variables differ depending on the target OS.*
@@ -102,5 +96,4 @@ with the [cookiecutter-dpf-effect] project template.
 [DPF]: https://github.com/DISTRHO/DPF
 [LV2]: http://lv2plug.in/
 [pkgconf]: https://github.com/pkgconf/pkgconf
-[VST2/3]: https://en.wikipedia.org/wiki/Virtual_Studio_Technology
-[CLAP]: https://cleveraudio.org/
+[VST3]: https://en.wikipedia.org/wiki/Virtual_Studio_Technology

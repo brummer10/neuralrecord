@@ -7,6 +7,7 @@
  */
 
 #include "PluginNeuralCapture.hpp"
+#include "profiler.cc"
 
 START_NAMESPACE_DISTRHO
 
@@ -15,7 +16,10 @@ START_NAMESPACE_DISTRHO
 PluginNeuralCapture::PluginNeuralCapture()
     : Plugin(paramCount, presetCount, 0)  // paramCount param(s), presetCount program(s), 0 states
 {
-    smooth_gain = new CParamSmooth(20.0f, getSampleRate());
+
+    profil = new profiler::Profil(1, [this] (const uint32_t index, float value) {this->setOutputParameterValue(index, value);},
+                                     [this] (const uint32_t index, float value) {this->requestParameterValueChange(index, value);});
+    profil->set_samplerate(getSampleRate(), profil); // init the DSP class
 
     for (unsigned p = 0; p < paramCount; ++p) {
         Parameter param;
@@ -25,7 +29,8 @@ PluginNeuralCapture::PluginNeuralCapture()
 }
 
 PluginNeuralCapture::~PluginNeuralCapture() {
-    delete smooth_gain;
+    profil->activate_plugin(false, profil);
+    profil->delete_instance(profil);
 }
 
 // -----------------------------------------------------------------------
@@ -35,17 +40,31 @@ void PluginNeuralCapture::initParameter(uint32_t index, Parameter& parameter) {
     if (index >= paramCount)
         return;
 
-    parameter.ranges.min = -90.0f;
-    parameter.ranges.max = 30.0f;
-    parameter.ranges.def = -0.0f;
-    parameter.unit = "db";
-    parameter.hints = kParameterIsAutomatable;
-
     switch (index) {
-        case paramGain:
-            parameter.name = "Gain (dB)";
-            parameter.shortName = "Gain";
-            parameter.symbol = "gain";
+        case paramButton:
+            parameter.name = "Capture";
+            parameter.shortName = "Capture";
+            parameter.symbol = "PROFILE";
+            parameter.ranges.min = 0.0f;
+            parameter.ranges.max = 1.0f;
+            parameter.ranges.def = 0.0f;
+            parameter.hints = kParameterIsAutomatable|kParameterIsInteger|kParameterIsBoolean;
+            break;
+        case paramState:
+            parameter.name = "State";
+            parameter.shortName = "State";
+            parameter.symbol = "STATE";
+            parameter.ranges.min = 0.0f;
+            parameter.ranges.max = 1.0f;
+            parameter.hints = kParameterIsAutomatable|kParameterIsOutput;
+            break;
+        case paramMeter:
+            parameter.name = "Meter";
+            parameter.shortName = "Meter";
+            parameter.symbol = "METER";
+            parameter.ranges.min = -130.0f;
+            parameter.ranges.max = 4.0f;
+            parameter.hints = kParameterIsAutomatable|kParameterIsOutput;
             break;
     }
 }
@@ -68,7 +87,6 @@ void PluginNeuralCapture::initProgramName(uint32_t index, String& programName) {
 */
 void PluginNeuralCapture::sampleRateChanged(double newSampleRate) {
     fSampleRate = newSampleRate;
-    smooth_gain->setSampleRate(newSampleRate);
 }
 
 /**
@@ -83,14 +101,38 @@ float PluginNeuralCapture::getParameterValue(uint32_t index) const {
 */
 void PluginNeuralCapture::setParameterValue(uint32_t index, float value) {
     fParams[index] = value;
-
+    //fprintf(stderr, "setParameterValue %i %f\n", index,value);
     switch (index) {
-        case paramGain:
-            gain = DB_CO(CLAMP(fParams[paramGain], -90.0, 30.0));
+        case paramButton:
+            button = fParams[paramButton];
+            break;
+        case paramState:
+            state = fParams[paramState];
+            break;
+        case paramMeter:
+            meter = fParams[paramMeter];
+            break;
+    }
+    profil->connect_ports(index, value, profil);
+}
+
+void PluginNeuralCapture::setOutputParameterValue(uint32_t index, float value)
+{
+    fParams[index] = value;
+    //fprintf(stderr, "setOutputParameterValue %i %f\n", index,value);
+    switch (index) {
+        case paramButton:
+            button = fParams[paramButton];
+            break;
+        case paramState:
+            //fprintf(stderr, "setOutputParameterValue %i %f\n", index,value);
+            state = fParams[paramState];
+            break;
+        case paramMeter:
+            meter = fParams[paramMeter];
             break;
     }
 }
-
 /**
   Load a program.
   The host may call this function from any context,
@@ -109,6 +151,7 @@ void PluginNeuralCapture::loadProgram(uint32_t index) {
 
 void PluginNeuralCapture::activate() {
     // plugin is activated
+    profil->activate_plugin(true, profil);
 }
 
 
@@ -118,18 +161,13 @@ void PluginNeuralCapture::run(const float** inputs, float** outputs,
 
     // get the left and right audio inputs
     const float* const inpL = inputs[0];
-    const float* const inpR = inputs[1];
+   // const float* const inpR = inputs[1];
 
     // get the left and right audio outputs
     float* const outL = outputs[0];
-    float* const outR = outputs[1];
+   // float* const outR = outputs[1];
 
-    // apply gain against all samples
-    for (uint32_t i=0; i < frames; ++i) {
-        float gainval = smooth_gain->process(gain);
-        outL[i] = inpL[i] * gainval;
-        outR[i] = inpR[i] * gainval;
-    }
+    profil->mono_audio(static_cast<int>(frames), inpL, outL, profil);
 }
 
 // -----------------------------------------------------------------------

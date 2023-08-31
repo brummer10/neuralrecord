@@ -13,9 +13,9 @@ NAME = neuralcapture
 # Plugin types to build
 
 BUILD_LV2 ?= true
-BUILD_VST2 ?= true
+BUILD_VST2 ?= false
 BUILD_VST3 ?= true
-BUILD_CLAP ?= true
+BUILD_CLAP ?= false
 BUILD_JACK ?= true
 BUILD_DSSI ?= false
 BUILD_LADSPA ?= false
@@ -34,6 +34,8 @@ FILES_UI = \
 
 UI_TYPE = cairo
 include ../../dpf/Makefile.plugins.mk
+
+BUILD_CXX_FLAGS += `pkg-config --cflags sndfile`  `pkg-config --libs sndfile`
 
 # --------------------------------------------------------------
 # Enable all selected plugin types
@@ -79,6 +81,12 @@ TARGETS += ladspa
 endif
 
 all: $(TARGETS)
+ifeq ($(BUILD_VST3),true)
+	@cp -r resources  $(TARGET_DIR)/$(NAME).vst3/Contents/x86_64-linux/
+endif
+ifeq ($(BUILD_LV2),true)
+	@cp -r resources  $(TARGET_DIR)/$(NAME).lv2/
+endif
 
 install: all
 ifeq ($(BUILD_DSSI),true)

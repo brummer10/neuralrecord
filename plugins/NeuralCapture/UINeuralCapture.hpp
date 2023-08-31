@@ -9,8 +9,11 @@
 #ifndef UI_NEURALCAPTURE_H
 #define UI_NEURALCAPTURE_H
 
+#include <functional>
 #include "DistrhoUI.hpp"
 #include "PluginNeuralCapture.hpp"
+#include "Cairo.hpp"
+#include "CairoWidgets.hpp"
 
 START_NAMESPACE_DISTRHO
 
@@ -26,15 +29,22 @@ protected:
 
     void uiIdle() override;
     void uiReshape(uint width, uint height) override;
-
-    void onDisplay() override;
+    
+    void box_shadows(cairo_t* const cr, int wi, int h);
+    void onCairoDisplay(const CairoGraphicsContext& context) override;
 
     bool onKeyboard(const KeyboardEvent& ev) override;
-    bool onMouse(const MouseEvent& ev) override;
+   // bool onMouse(const MouseEvent& ev) override;
     bool onMotion(const MotionEvent& ev) override;
     bool onScroll(const ScrollEvent& ev) override;
+    void onResize(const ResizeEvent& ev) override;
 
 private:
+    int kInitialHeight;
+    int kInitialWidth;
+    ScopedPointer<CairoButton> fButton;
+    ScopedPointer<CairoProgressBar> fProgressBar;
+    ScopedPointer<CairoPeekMeter> fPeekMeter;
     DISTRHO_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(UINeuralCapture)
 };
 

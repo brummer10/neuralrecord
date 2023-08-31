@@ -11,6 +11,7 @@
 
 #include "DistrhoPlugin.hpp"
 #include "CParamSmooth.hpp"
+#include "profiler.h"
 
 START_NAMESPACE_DISTRHO
 
@@ -35,7 +36,9 @@ START_NAMESPACE_DISTRHO
 class PluginNeuralCapture : public Plugin {
 public:
     enum Parameters {
-        paramGain = 0,
+        paramButton = 0,
+        paramState = 1,
+        paramMeter = 2,
         paramCount
     };
 
@@ -56,7 +59,7 @@ protected:
     }
 
     const char* getMaker() const noexcept override {
-        return "MOD";
+        return "brummer";
     }
 
     const char* getHomePage() const override {
@@ -93,6 +96,8 @@ protected:
     void setParameterValue(uint32_t index, float value) override;
     void loadProgram(uint32_t index) override;
 
+    void setOutputParameterValue(uint32_t index, float value);
+
     // -------------------------------------------------------------------
     // Optional
 
@@ -112,8 +117,11 @@ protected:
 private:
     float           fParams[paramCount];
     double          fSampleRate;
-    float           gain;
-    CParamSmooth    *smooth_gain;
+    float           button;
+    float           state;
+    float           meter;
+    // pointer to dsp class
+    profiler::Profil*  profil;
 
     DISTRHO_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginNeuralCapture)
 };
@@ -125,8 +133,6 @@ struct Preset {
 
 const Preset factoryPresets[] = {
     {
-        "Unity Gain",
-        {0.0f}
     }
     //,{
     //    "Another preset",  // preset name
