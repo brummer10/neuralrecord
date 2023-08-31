@@ -35,7 +35,7 @@ FILES_UI = \
 UI_TYPE = cairo
 include ../../dpf/Makefile.plugins.mk
 
-BUILD_CXX_FLAGS += `pkg-config --cflags sndfile`  `pkg-config --libs sndfile`
+BUILD_CXX_FLAGS += -pthread -lrt `pkg-config --cflags sndfile`  `pkg-config --libs sndfile`
 
 # --------------------------------------------------------------
 # Enable all selected plugin types
