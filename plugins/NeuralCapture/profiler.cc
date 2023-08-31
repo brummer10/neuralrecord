@@ -233,7 +233,11 @@ inline std::string Profil::get_path() {
     pPath = "/data/user-files/Audio Recordings/profiles/";
 #endif
     if (!(stat(pPath.c_str(), &sb) == 0 && S_ISDIR(sb.st_mode))) {
+#if defined(WIN32) || defined(_WIN32)
+        mkdir(pPath.c_str());
+#else
         mkdir(pPath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+#endif
     }
 
     return pPath;
