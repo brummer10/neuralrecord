@@ -10,7 +10,6 @@
 #define PLUGIN_NEURALCAPTURE_H
 
 #include "DistrhoPlugin.hpp"
-#include "CParamSmooth.hpp"
 #include "profiler.h"
 
 START_NAMESPACE_DISTRHO

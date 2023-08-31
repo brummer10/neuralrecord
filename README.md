@@ -2,6 +2,9 @@
 
 A Neural Capture plug to make the process of cloning external soft/hardware a bit more comfortable 
 
+![NeuralCapture](https://github.com/brummer10/neuralcapture/blob/main/NeuralCapture.png?raw=true)
+
+
 ## Formats
 
 Neural Capture come in the following plug-in formats:
