@@ -9,6 +9,8 @@ jobs:
       matrix:
         target: [linux-arm64, linux-armhf, linux-i686, linux-riscv64, linux-x86_64]
     runs-on: ubuntu-20.04
+    permissions:
+        contents: write
     steps:
       - uses: actions/checkout@v3
         with:
@@ -23,6 +25,8 @@ jobs:
       matrix:
         target: [macos-intel, macos-universal]
     runs-on: macos-11
+    permissions:
+        contents: write
     steps:
       - uses: actions/checkout@v3
         with:
@@ -37,6 +41,8 @@ jobs:
       matrix:
         target: [win32, win64]
     runs-on: ubuntu-20.04
+    permissions:
+        contents: write
     steps:
       - uses: actions/checkout@v3
         with:
@@ -48,6 +54,8 @@ jobs:
 
   pluginval:
     runs-on: ubuntu-20.04
+    permissions:
+        contents: write
     steps:
       - uses: actions/checkout@v3
         with:
