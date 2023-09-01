@@ -66,6 +66,14 @@ void PluginNeuralCapture::initParameter(uint32_t index, Parameter& parameter) {
             parameter.ranges.max = 4.0f;
             parameter.hints = kParameterIsAutomatable|kParameterIsOutput;
             break;
+        case paramError:
+            parameter.name = "Error";
+            parameter.shortName = "Error";
+            parameter.symbol = "ERRORS";
+            parameter.ranges.min = 0.0f;
+            parameter.ranges.max = 3.0f;
+            parameter.hints = kParameterIsOutput;
+            break;
     }
 }
 
@@ -112,6 +120,9 @@ void PluginNeuralCapture::setParameterValue(uint32_t index, float value) {
         case paramMeter:
             meter = fParams[paramMeter];
             break;
+        case paramError:
+            p_error = fParams[paramError];
+            break;
     }
     profil->connect_ports(index, value, profil);
 }
@@ -130,6 +141,9 @@ void PluginNeuralCapture::setOutputParameterValue(uint32_t index, float value)
             break;
         case paramMeter:
             meter = fParams[paramMeter];
+            break;
+        case paramError:
+            p_error = fParams[paramError];
             break;
     }
 }

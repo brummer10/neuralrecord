@@ -10,10 +10,6 @@
 #include "Window.hpp"
 
 START_NAMESPACE_DISTRHO
-using DGL_NAMESPACE::CairoGraphicsContext;
-using DGL_NAMESPACE::CairoImage;
-using DGL_NAMESPACE::CairoImageButton;
-using DGL_NAMESPACE::CairoImageKnob;
 
 // -----------------------------------------------------------------------
 // Init / Deinit
@@ -22,7 +18,8 @@ UINeuralCapture::UINeuralCapture()
 : UI(350, 250)  {
     kInitialHeight = 250;
     kInitialWidth = 350;
-    fButton = new CairoButton(this, "Capture", [this] (const uint32_t index, float value) {this->setParameterValue(index, value);});
+    fButton = new CairoButton(this, "Capture",
+                [this] (const uint32_t index, float value) {this->setParameterValue(index, value);});
     fButton->setSize(200, 50);
     fButton->setAbsolutePos(75, 30);
     
@@ -32,6 +29,10 @@ UINeuralCapture::UINeuralCapture()
     
     fPeekMeter = new CairoPeekMeter(this, 200, 50);
     fPeekMeter->setAbsolutePos(75, 160);
+
+    fToolTip = new CairoToolTip(this, "This is a Error Message");
+    fToolTip->setSize(350, 50);
+    fToolTip->setAbsolutePos(0, 105);
 
     setGeometryConstraints(kInitialWidth, kInitialHeight, true);
 }
@@ -56,11 +57,23 @@ void UINeuralCapture::parameterChanged(uint32_t index, float value) {
             fProgressBar->setValue(value);
             if (value >=1.0) {
                 fButton->setValue(0.0f);
-                setParameterValue(0, 0.0f);
+                setParameterValue(PluginNeuralCapture::paramButton, 0.0f);
             }
             break;
         case PluginNeuralCapture::paramMeter:
             fPeekMeter->setValue(value);
+            break;
+        case PluginNeuralCapture::paramError:
+            // if ((int)value == 0) fToolTip->unset();
+            if ((int)value > 0) 
+                fButton->setValue(0.0f);
+            if ((int)value == 1) 
+                fToolTip->setLabel("Error: no signal comes in, stop the process here");
+            else if ((int)value == 2) 
+                fToolTip->setLabel("Error: seems we receive garbage, stop the process here");
+            else if ((int)value == 3) 
+                fToolTip->setLabel("Error: Sample Rate mismatch, please use 48kHz");
+
             break;
     }
 }
@@ -82,7 +95,7 @@ void UINeuralCapture::programLoaded(uint32_t index) {
   Optional callback to inform the UI about a sample rate change on the plugin side.
 */
 void UINeuralCapture::sampleRateChanged(double newSampleRate) {
-    (void)newSampleRate;
+    if (newSampleRate != 48000) fToolTip->setLabel("Sample Rate mismatch, please use 48kHz");
 }
 
 // -----------------------------------------------------------------------
@@ -107,62 +120,20 @@ void UINeuralCapture::uiReshape(uint width, uint height) {
 // -----------------------------------------------------------------------
 // Widget callbacks
 
-
-void UINeuralCapture::box_shadows(cairo_t* const cr, int wi, int h) {
-    int width = getWidth();
-    int height = getHeight();
-
-    cairo_pattern_t *pat = cairo_pattern_create_linear (0, 0, wi, 0);
-    cairo_pattern_add_color_stop_rgba (pat, 0,  0.33, 0.33, 0.33, 0.8);
-    cairo_pattern_add_color_stop_rgba (pat, 0.4,  0.33, 0.33, 0.33, 0.3);
-    cairo_pattern_add_color_stop_rgba (pat, 1,  0.33, 0.33, 0.33, 0.0);
-    cairo_pattern_set_extend(pat, CAIRO_EXTEND_NONE);
-    cairo_set_source(cr, pat);
-    cairo_paint (cr);
-    cairo_pattern_destroy (pat);
-    pat = NULL;
-
-    pat = cairo_pattern_create_linear (0, 0, 0, h);
-    cairo_pattern_add_color_stop_rgba (pat, 0,  0.33, 0.33, 0.33, 0.8);
-    cairo_pattern_add_color_stop_rgba (pat, 0.4,  0.33, 0.33, 0.33, 0.3);
-    cairo_pattern_add_color_stop_rgba (pat, 1,  0.33, 0.33, 0.33, 0.0);
-    cairo_pattern_set_extend(pat, CAIRO_EXTEND_NONE);
-    cairo_set_source(cr, pat);
-    cairo_paint (cr);
-    cairo_pattern_destroy (pat);
-    pat = NULL;
-
-    pat = cairo_pattern_create_linear (width - wi, 0, width, 0);
-    cairo_pattern_add_color_stop_rgba (pat, 0,  0.05, 0.05, 0.05, 0.0);
-    cairo_pattern_add_color_stop_rgba (pat, 0.4,  0.05, 0.05, 0.05, 0.3);
-    cairo_pattern_add_color_stop_rgba (pat, 1,  0.05, 0.05, 0.05, 0.8);
-    cairo_pattern_set_extend(pat, CAIRO_EXTEND_NONE);
-    cairo_set_source(cr, pat);
-    cairo_paint (cr);
-    cairo_pattern_destroy (pat);
-    pat = NULL;
-
-    pat = cairo_pattern_create_linear (0, height - h, 0, height);
-    cairo_pattern_add_color_stop_rgba (pat, 0,  0.05, 0.05, 0.05, 0.0);
-    cairo_pattern_add_color_stop_rgba (pat, 0.4,  0.05, 0.05, 0.05, 0.3);
-    cairo_pattern_add_color_stop_rgba (pat, 1,  0.05, 0.05, 0.05, 0.8);
-    cairo_pattern_set_extend(pat, CAIRO_EXTEND_NONE);
-    cairo_set_source(cr, pat);
-    cairo_paint (cr);
-    cairo_pattern_destroy (pat);
-    pat = NULL;
-
-}
-
 /**
   A function called to draw the view contents.
 */
 void UINeuralCapture::onCairoDisplay(const CairoGraphicsContext& context) {
     cairo_t* const cr = context.handle;
+    int width = getWidth();
+    int height = getHeight();
 
+    cairo_push_group (cr);
     cairo_set_source_rgba(cr, 0.13, 0.13, 0.13, 1.0);
     cairo_paint(cr);
-    box_shadows(cr, 25, 25);
+    box_shadow(cr, width, height, 25, 25);
+    cairo_pop_group_to_source (cr);
+    cairo_paint (cr);
 }
 
 void UINeuralCapture::onResize(const ResizeEvent& ev)
@@ -180,6 +151,9 @@ void UINeuralCapture::onResize(const ResizeEvent& ev)
     
     fPeekMeter->setSize( 200*scaleFactor, 50*scaleFactor);
     fPeekMeter->setAbsolutePos(75*scaleWFactor, 160*scaleHFactor);
+
+    fToolTip->setSize(350*scaleFactor, 50*scaleFactor);
+    fToolTip->setAbsolutePos(0*scaleFactor, 105*scaleFactor);
 }
 
 // -----------------------------------------------------------------------

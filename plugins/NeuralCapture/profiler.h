@@ -91,6 +91,7 @@ private:
     float           fbargraph;
     float           fbargraph1;
     float           errors;
+    int             reset_errors;
     int             latency;
     int             roundtrip;
     int             measure;
@@ -144,7 +145,7 @@ private:
     inline std::string get_path(); 
     inline std::string get_ffilename(); 
     inline std::string get_ifilename(); 
-    std::function<void(const uint32_t, float) > send_to_host;
+    std::function<void(const uint32_t, float) > setOutputParameterValue;
     std::function<void(const uint32_t, float) > requestParameterValueChange;
 
 public:
@@ -155,7 +156,7 @@ public:
     static void mono_audio(int count, const float *input0, float *output0, Profil*);
     static void delete_instance(Profil *p);
     static void connect_ports(uint32_t port, float data, Profil *p);
-    Profil(int channel_, std::function<void(const uint32_t , float) > send_to_host_,
+    Profil(int channel_, std::function<void(const uint32_t , float) > setOutputParameterValue_,
                          std::function<void(const uint32_t , float) > requestParameterValueChange_);
     ~Profil();
 };

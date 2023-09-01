@@ -27,8 +27,8 @@ typedef enum
    PROFILE,
    STATE,
    METER,
-   CLIP,
    ERRORS,
+   CLIP,
 } PortIndex;
 
 
@@ -177,7 +177,7 @@ inline std::string to_string(const T& t) {
     return ss.str();
 }
 
-Profil::Profil(int channel_, std::function<void(const uint32_t , float) > send_to_host_,
+Profil::Profil(int channel_, std::function<void(const uint32_t , float) > setOutputParameterValue_,
                              std::function<void(const uint32_t , float) > requestParameterValueChange_)
     : recfile(NULL),
       playfile(NULL),
@@ -192,7 +192,7 @@ Profil::Profil(int channel_, std::function<void(const uint32_t , float) > send_t
       keep_stream(false),
       mem_allocated(false),
       err(false),
-      send_to_host(send_to_host_),
+      setOutputParameterValue(setOutputParameterValue_),
       requestParameterValueChange(requestParameterValueChange_) {
     sem_init(&m_trig, 0, 0);
 }
@@ -386,9 +386,16 @@ inline void Profil::init(unsigned int samplingFreq) {
     nf = 1.0;
     iRef = 0;
     fRef = 0.0000003;
+    errors = 0.0;
+    reset_errors = 0;
     fConst0 = (1.0f / float(fmin(192000, fmax(1, fSamplingFreq))));
     mtdm = mtdm_new(fSamplingFreq);
     start_thread();
+    if (fSamplingFreq != 48000) {
+        err = true;
+        errors = 3.0;
+        setOutputParameterValue(ERRORS, errors);
+    }
 }
 
 // static wrapper for the internal init call
@@ -485,6 +492,7 @@ void always_inline Profil::compute(int count, const float *input0, float *output
     if (!(int(fcheckbox0))) {
         finish = 0;
         errors = 0.0;
+        //setOutputParameterValue(ERRORS, errors);
         fbargraph1 = 0.0;
     }
 
@@ -502,8 +510,9 @@ void always_inline Profil::compute(int count, const float *input0, float *output
             measure = 0;
             finish = 1;
             errors = 1.0;
+            setOutputParameterValue(ERRORS, errors);
             requestParameterValueChange((PortIndex)PROFILE, 0.0f);
-            fprintf (stderr, "no signal comes in, stop the process here\n");
+            //fprintf (stderr, "no signal comes in, stop the process here\n");
             return;
         }
         // when phase is inverted resolve with inverted frames
@@ -513,7 +522,7 @@ void always_inline Profil::compute(int count, const float *input0, float *output
         }
         // set roundtrip latency
         roundtrip = mtdm->_del;
-        printf ("roundtrip latency is %i\n", roundtrip);
+        //printf ("roundtrip latency is %i\n", roundtrip);
 
         // seems we receive garbage, stop the process here
         if (mtdm->_err > 0.2) {
@@ -521,8 +530,9 @@ void always_inline Profil::compute(int count, const float *input0, float *output
             measure = 0;
             finish = 1;
             errors = 2.0;
+            setOutputParameterValue(ERRORS, errors);
             requestParameterValueChange((PortIndex)PROFILE, 0.0f);
-            fprintf (stderr, "seems we receive garbage, stop the process here\n");
+            //fprintf (stderr, "seems we receive garbage, stop the process here\n");
             return;
         }
     }
@@ -602,10 +612,15 @@ void always_inline Profil::compute(int count, const float *input0, float *output
      iRef = !iRef;
      fRef = iRef ? 0.0000003 : 0.00000031;
      fbargraph = 20.*log10(fmax(fRef,fRecb2[0]));
-     send_to_host(METER, fbargraph);
+     setOutputParameterValue(METER, fbargraph);
     // progress bar
      fbargraph1 = finish ? 1.0 : float(float(IOTAP) / float(inputsize));
-     send_to_host(STATE, fbargraph1);
+     setOutputParameterValue(STATE, fbargraph1);
+     reset_errors++;
+     if (reset_errors > 2000) {
+         reset_errors = 0;
+         setOutputParameterValue(ERRORS, errors);
+     }
 }
 
 // static wrapper to run the process

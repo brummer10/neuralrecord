@@ -38,6 +38,7 @@ public:
         paramButton = 0,
         paramState = 1,
         paramMeter = 2,
+        paramError = 3,
         paramCount
     };
 
@@ -119,6 +120,7 @@ private:
     float           button;
     float           state;
     float           meter;
+    float           p_error;
     // pointer to dsp class
     profiler::Profil*  profil;
 

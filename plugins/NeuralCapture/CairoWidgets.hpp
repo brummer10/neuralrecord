@@ -13,6 +13,7 @@
 
 #include <functional>
 #include "Cairo.hpp"
+#include "extra/Runner.hpp"
 
 START_NAMESPACE_DISTRHO
 
@@ -63,6 +64,49 @@ public:
         cairo_pattern_destroy (pat);
     }
 
+    void box_shadow(cairo_t* const cr, int width, int height, int w, int h)
+    {
+        cairo_pattern_t *pat = cairo_pattern_create_linear (0, 0, w, 0);
+        cairo_pattern_add_color_stop_rgba (pat, 0,  0.33, 0.33, 0.33, 0.8);
+        cairo_pattern_add_color_stop_rgba (pat, 0.4,  0.33, 0.33, 0.33, 0.3);
+        cairo_pattern_add_color_stop_rgba (pat, 1,  0.33, 0.33, 0.33, 0.0);
+        cairo_pattern_set_extend(pat, CAIRO_EXTEND_NONE);
+        cairo_set_source(cr, pat);
+        cairo_paint (cr);
+        cairo_pattern_destroy (pat);
+        pat = NULL;
+
+        pat = cairo_pattern_create_linear (0, 0, 0, h);
+        cairo_pattern_add_color_stop_rgba (pat, 0,  0.33, 0.33, 0.33, 0.8);
+        cairo_pattern_add_color_stop_rgba (pat, 0.4,  0.33, 0.33, 0.33, 0.3);
+        cairo_pattern_add_color_stop_rgba (pat, 1,  0.33, 0.33, 0.33, 0.0);
+        cairo_pattern_set_extend(pat, CAIRO_EXTEND_NONE);
+        cairo_set_source(cr, pat);
+        cairo_paint (cr);
+        cairo_pattern_destroy (pat);
+        pat = NULL;
+
+        pat = cairo_pattern_create_linear (width - w, 0, width, 0);
+        cairo_pattern_add_color_stop_rgba (pat, 0,  0.05, 0.05, 0.05, 0.0);
+        cairo_pattern_add_color_stop_rgba (pat, 0.4,  0.05, 0.05, 0.05, 0.3);
+        cairo_pattern_add_color_stop_rgba (pat, 1,  0.05, 0.05, 0.05, 0.8);
+        cairo_pattern_set_extend(pat, CAIRO_EXTEND_NONE);
+        cairo_set_source(cr, pat);
+        cairo_paint (cr);
+        cairo_pattern_destroy (pat);
+        pat = NULL;
+
+        pat = cairo_pattern_create_linear (0, height - h, 0, height);
+        cairo_pattern_add_color_stop_rgba (pat, 0,  0.05, 0.05, 0.05, 0.0);
+        cairo_pattern_add_color_stop_rgba (pat, 0.4,  0.05, 0.05, 0.05, 0.3);
+        cairo_pattern_add_color_stop_rgba (pat, 1,  0.05, 0.05, 0.05, 0.8);
+        cairo_pattern_set_extend(pat, CAIRO_EXTEND_NONE);
+        cairo_set_source(cr, pat);
+        cairo_paint (cr);
+        cairo_pattern_destroy (pat);
+        pat = NULL;
+    }
+
 };
 
 class CairoButton : public CairoSubWidget, public CairoShadows
@@ -86,7 +130,6 @@ public:
 
     void setValue(float v)
     {
-       // fprintf(stderr, "get value %f\n", v);
         value = v;
         state = (int)value;
         repaint();
@@ -137,7 +180,6 @@ protected:
 
     bool onMouse(const MouseEvent& event) override
     {
-       // fprintf(stderr, "mouse\n");
         if (!event.press)
         {
             const int w = getWidth();
@@ -164,6 +206,7 @@ private:
     float value;
     uint state;
     const char* label;
+    DISTRHO_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CairoButton)
 };
 
 // -----------------------------------------------------------------------
@@ -183,7 +226,6 @@ public:
 
     void setValue(float v)
     {
-       // fprintf(stderr, "set state value %f\n", v);
         value = v;
         repaint();
     }
@@ -213,7 +255,7 @@ protected:
         char s[64];
         snprintf(s, 63,"%d%%",  (int) (value * 100.0));
         cairo_text_extents(cr,s , &extents);
-        cairo_move_to (cr, width/2-extents.width/2,  height/2 + extents.height/2 );
+        cairo_move_to (cr, width * 0.5-extents.width * 0.5,  height * 0.5 + extents.height * 0.5 );
         cairo_set_source_rgba(cr, 0.63, 0.63, 0.63, 1.0);
         cairo_set_operator(cr, CAIRO_OPERATOR_ADD);
         cairo_show_text(cr, s);
@@ -226,6 +268,7 @@ protected:
 
 private:
     float value;
+    DISTRHO_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CairoProgressBar)
 };
 
 // -----------------------------------------------------------------------
@@ -240,7 +283,7 @@ public:
             std_value = -70.0f;
             value = -70.0f;
             setSize(w, h);
-            drawMeterImage(w, h/2);
+            drawMeterImage(w, h * 0.5);
             }
 
     explicit CairoPeekMeter(TopLevelWidget* const parent, int w, int h)
@@ -250,12 +293,11 @@ public:
             std_value = -70.0f;
             value = -70.0f;
             setSize(w, h);
-            drawMeterImage(w, h/2);
+            drawMeterImage(w, h * 0.5);
             }
 
     void setValue(float v)
     {
-        //fprintf(stderr, "set meter value %f\n", v);
         value = v;
         repaint();
     }
@@ -334,7 +376,7 @@ protected:
         cairo_pattern_add_color_stop_rgba(pat, 1.0, 0.5, 0.0, 0.0, 0.4);
         cairo_set_source(cri, pat);
 
-        int c = (height)/2 ;
+        int c = (height) * 0.5 ;
         int ci = c-2;
 
         int i = 1;
@@ -381,7 +423,7 @@ protected:
         int  db_points[] = { -50, -40, -30, -20, -15, -10, -6, -3, 0, 3 };
         char  buf[32];
 
-        cairo_set_font_size (cr, (float)rect_height/2);
+        cairo_set_font_size (cr, (float)rect_height * 0.5);
         cairo_set_source_rgba(cr, 0.6, 0.6, 0.6, 0.6);
 
         for (unsigned int i = 0; i < sizeof (db_points)/sizeof (db_points[0]); ++i)
@@ -416,20 +458,20 @@ protected:
 
         const Size<uint> sz = getSize();
         const int width = sz.getWidth();
-        const int height = sz.getHeight()/2;
+        const int height = sz.getHeight() * 0.5;
 
         double meterstate = logMeter(power2db(value));
         double oldstate = logMeter(old_value);
-        cairo_set_source_surface (cr, image, 0, height/2);
-        cairo_rectangle(cr,0, height/2, width, height/2);
+        cairo_set_source_surface (cr, image, 0, height * 0.5);
+        cairo_rectangle(cr,0, height * 0.5, width, height * 0.5);
         cairo_fill(cr);
         cairo_set_source_surface (cr, image, 0, -height);
-        cairo_rectangle(cr, 0,height/2, width*meterstate, height/2);
+        cairo_rectangle(cr, 0,height * 0.5, width*meterstate, height * 0.5);
         cairo_fill(cr);
 
-        cairo_rectangle(cr,(width*oldstate)-3, height/2, 3, height/2);
+        cairo_rectangle(cr,(width*oldstate)-3, height * 0.5, 3, height * 0.5);
         cairo_fill(cr);
-        drawMeterScale(cr, height, width, height/2);
+        drawMeterScale(cr, height, width, height * 0.5);
         boxShadowInset(cr, width, height*2);
         cairo_pop_group_to_source (cr);
         cairo_paint (cr);
@@ -439,7 +481,7 @@ protected:
     {
         cairo_surface_destroy(image);
         image = nullptr;
-        drawMeterImage(ev.size.getWidth(), ev.size.getHeight());
+        drawMeterImage(ev.size.getWidth(), ev.size.getHeight() * 0.5);
     }
 
 private:
@@ -447,10 +489,96 @@ private:
     float value;
     float old_value;
     float std_value;
+    DISTRHO_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CairoPeekMeter)
 };
 
 // -----------------------------------------------------------------------
 
+class CairoToolTip : public CairoSubWidget, public Runner
+{
+public:
+    explicit CairoToolTip(SubWidget* const parent_, const char* lab)
+        : CairoSubWidget(parent_),
+          parent(parent_) {
+            label = lab;
+            hide();
+            state = 0;
+            }
+
+    explicit CairoToolTip(TopLevelWidget* const parent_, const char* lab)
+        : CairoSubWidget(parent_),
+          parent(parent_) {
+            label = lab;
+            hide();
+            state = 0;
+            }
+
+    ~CairoToolTip() {if (isRunnerActive()) stopRunner();}
+
+    void setLabel(const char* lab)
+    {
+        label = lab;
+        show();
+        repaint();
+        if (!isRunnerActive()) startRunner(2500);
+    }
+    
+    void unset()
+    {
+        hide();
+        parent->repaint();
+    }
+
+protected:
+
+    void onCairoDisplay(const CairoGraphicsContext& context) override
+    {
+        cairo_t* const cr = context.handle;
+        cairo_push_group (cr);
+
+        const Size<uint> sz = getSize();
+        const int w = sz.getWidth();
+        const int h = sz.getHeight();
+        cairo_set_source_rgba(cr, 0.13, 0.13, 0.13, 1.0);
+        
+        cairo_rectangle(cr, 0, 0, w, h);
+        cairo_fill_preserve(cr);
+        cairo_set_source_rgba(cr, 0., 0., 0., 1.0);
+        cairo_stroke(cr);
+        cairo_text_extents_t extents;
+        cairo_set_source_rgba(cr, 0.63, 0.63, 0.63, 1.0);
+        cairo_set_font_size (cr, h * 0.26);
+        cairo_select_font_face (cr, "Sans", CAIRO_FONT_SLANT_NORMAL,
+                                   CAIRO_FONT_WEIGHT_BOLD);
+        cairo_text_extents(cr, label , &extents);
+
+        cairo_move_to (cr, (w-extents.width)*0.5, (h+extents.height)*0.45);
+        cairo_show_text(cr, label);
+        cairo_new_path (cr);
+        cairo_pop_group_to_source (cr);
+        cairo_paint (cr);
+    }
+
+    bool run() override
+    {
+        if (state) {
+            state = 0;
+            unset();
+            return false;
+        } else {
+            state = 1;
+            return true;
+        }
+    }
+
+private:
+    Widget* parent;
+    const char* label;
+    uint state;
+    DISTRHO_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CairoToolTip)
+};
+
+// -----------------------------------------------------------------------
 
 END_NAMESPACE_DISTRHO
 
