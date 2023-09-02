@@ -87,7 +87,7 @@ libs:
 	$(MAKE) -C dpf/dgl ../build/libdgl-cairo.a
 
 plugins: libs
-	$(MAKE) all -C plugins/NeuralCapture
+	$(MAKE) all -C plugins/NeuralRecord
 
 ifneq ($(CROSS_COMPILING),true)
 gen: plugins dpf/utils/lv2_ttl_generator
@@ -108,14 +108,14 @@ endif
 clean:
 	$(MAKE) clean -C dpf/dgl
 	$(MAKE) clean -C dpf/utils/lv2-ttl-generator
-	$(MAKE) clean -C plugins/NeuralCapture
+	$(MAKE) clean -C plugins/NeuralRecord
 	rm -rf bin build
 
 install: all
-	$(MAKE) install -C plugins/NeuralCapture
+	$(MAKE) install -C plugins/NeuralRecord
 
 install-user: all
-	$(MAKE) install-user -C plugins/NeuralCapture
+	$(MAKE) install-user -C plugins/NeuralRecord
 
 # --------------------------------------------------------------
 

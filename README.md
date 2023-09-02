@@ -1,13 +1,13 @@
-# Neural Capture
+# Neural Record
 
-A Neural Capture plug to make the process of cloning external soft/hardware a bit more comfortable 
+A Neural Recorder plug to make the process of cloning external soft/hardware a bit more comfortable 
 
-![NeuralCapture](https://github.com/brummer10/neuralcapture/blob/main/NeuralCapture.png?raw=true)
+![NeuralRecord](https://github.com/brummer10/neuralrecord/blob/main/NeuralRecord.png?raw=true)
 
 
 ## Formats
 
-Neural Capture come in the following plug-in formats:
+Neural Record come in the following plug-in formats:
 
 * [LV2]
 * [VST3]
@@ -19,8 +19,8 @@ section "Prerequisites" below) and then clone this repository (including
 sub-modules) and simply run `make` in the project's root directory:
 
 ```con
-git clone --recursive https://github.com:brummer10/neuralcapture
-cd neuralcapture
+git clone --recursive https://github.com:brummer10/neuralrecord
+cd neuralrecord
 make
 ```
 

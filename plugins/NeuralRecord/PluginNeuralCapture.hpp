@@ -51,11 +51,11 @@ protected:
     // Information
 
     const char* getLabel() const noexcept override {
-        return "NeuralCapture";
+        return "Neural Record";
     }
 
     const char* getDescription() const override {
-        return "A Neural Capture plug to make the process of cloning external soft/hardware a bit more comfortable ";
+        return "A Neural Record plug to make the process of cloning external soft/hardware a bit more comfortable ";
     }
 
     const char* getMaker() const noexcept override {
@@ -63,7 +63,7 @@ protected:
     }
 
     const char* getHomePage() const override {
-        return "https://github.com/brummer10/neuralcapture";
+        return "https://github.com/brummer10/neuralrecord";
     }
 
     const char* getLicense() const noexcept override {

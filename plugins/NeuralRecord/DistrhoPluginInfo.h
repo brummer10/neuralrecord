@@ -10,9 +10,9 @@
 #define DISTRHO_PLUGIN_INFO_H
 
 #define DISTRHO_PLUGIN_BRAND "brummer"
-#define DISTRHO_PLUGIN_NAME  "NeuralCapture"
-#define DISTRHO_PLUGIN_URI   "urn:brummer10:neuralcapture"
-#define DISTRHO_PLUGIN_CLAP_ID "com.github.brummer10.neuralcapture"
+#define DISTRHO_PLUGIN_NAME  "Neural Record"
+#define DISTRHO_PLUGIN_URI   "urn:brummer10:neuralrecord"
+#define DISTRHO_PLUGIN_CLAP_ID "com.github.brummer10.neuralrecord"
 
 #define DISTRHO_PLUGIN_HAS_UI           1
 #define DISTRHO_UI_USE_NANOVG           0

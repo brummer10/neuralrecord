@@ -7,7 +7,7 @@
 # --------------------------------------------------------------
 # Project name, used for binaries
 
-NAME = neuralcapture
+NAME = neuralrecord
 
 # --------------------------------------------------------------
 # Plugin types to build

@@ -224,7 +224,15 @@ inline std::string Profil::get_path() {
     std::string pPath;
 
 #ifndef  __MOD_DEVICES__
+#if defined(WIN32) || defined(_WIN32)
+    pPath = getenv("USERPROFILE");
+    if (pPath.empty()) {
+        pPath = getenv("HOMEDRIVE");
+        pPath +=  getenv("HOMEPATH");
+    }
+#else
     pPath = getenv("HOME");
+#endif
     pPath +=PATH_SEPARATOR;
     pPath +="profiles";
     pPath +=PATH_SEPARATOR;
