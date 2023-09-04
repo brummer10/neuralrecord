@@ -51,7 +51,7 @@ public:
     // add a SubWidget to the group and get the size/position
     void addToSizeGroup(SubWidget * const widget)
     {
-        const Rectangle<uint> rec = widget->getConstrainedAbsoluteArea();
+        const DGL::Rectangle<uint> rec = widget->getConstrainedAbsoluteArea();
 
         const SizeGroup sg = { widget, rec.getX(), rec.getY(), rec.getWidth(), rec.getHeight() };
         sizeGroup.push_back(sg);
