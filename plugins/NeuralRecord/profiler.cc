@@ -92,6 +92,21 @@ struct MTDM * mtdm_new (double fsamp)
     return retval;
 }
 
+void mtdm_clear (struct MTDM *self)
+{
+    int   i;
+    struct Freq   *F;
+
+    self->_cnt = 0;
+    self->_inv = 0;
+    for (i = 0, F = self->_freq; i < 13; i++, F++) {
+        F->p = 128;
+        F->xa = F->ya = 0.0f;
+        F->x1 = F->y1 = 0.0f;
+        F->x2 = F->y2 = 0.0f;
+    }    
+}
+
 int mtdm_process (struct MTDM *self, size_t len, const float *ip, float *op)
 {
     int    i;
@@ -499,6 +514,8 @@ void always_inline Profil::compute(int count, const float *input0, float *output
     fcheckbox1 = int(fRecb2[0]);
     if (!(int(fcheckbox0))) {
         finish = 0;
+        roundtrip = 0;
+        measure = 0;
         errors = 0.0;
         //setOutputParameterValue(ERRORS, errors);
         fbargraph1 = 0.0;
@@ -530,7 +547,7 @@ void always_inline Profil::compute(int count, const float *input0, float *output
         }
         // set roundtrip latency
         roundtrip = mtdm->_del;
-        //printf ("roundtrip latency is %i\n", roundtrip);
+        // printf ("roundtrip latency is %i\n", roundtrip);
 
         // seems we receive garbage, stop the process here
         if (mtdm->_err > 0.2) {
@@ -543,6 +560,8 @@ void always_inline Profil::compute(int count, const float *input0, float *output
             //fprintf (stderr, "seems we receive garbage, stop the process here\n");
             return;
         }
+        // clear the roundtrip measurement struct
+        mtdm_clear(mtdm);
     }
     for (int i=0; i<count; i++) {
         // default output is zero

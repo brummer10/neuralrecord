@@ -15,24 +15,24 @@ START_NAMESPACE_DISTRHO
 // Init / Deinit
 
 UINeuralCapture::UINeuralCapture()
-: UI(350, 250)  {
+: UI(350, 250, true)  {
     kInitialHeight = 250;
     kInitialWidth = 350;
-    fButton = new CairoButton(this, "Capture",
+    sizeGroup = new UiSizeGroup(kInitialWidth, kInitialHeight);
+    getPathInfo(pathInfo);
+
+    fButton = new CairoButton(this, "Capture", PluginNeuralCapture::paramButton,
                 [this] (const uint32_t index, float value) {this->setParameterValue(index, value);});
-    fButton->setSize(200, 50);
-    fButton->setAbsolutePos(75, 30);
+    sizeGroup->addToSizeGroup(fButton, 75, 30, 200, 50);
     
     fProgressBar = new CairoProgressBar(this);
-    fProgressBar->setSize(200, 30);
-    fProgressBar->setAbsolutePos(75, 105);
+    sizeGroup->addToSizeGroup(fProgressBar, 75, 105, 200, 30);
     
-    fPeekMeter = new CairoPeekMeter(this, 200, 50);
-    fPeekMeter->setAbsolutePos(75, 160);
+    fPeekMeter = new CairoPeekMeter(this);
+    sizeGroup->addToSizeGroup(fPeekMeter, 75, 160, 200, 50);
 
-    fToolTip = new CairoToolTip(this, "This is a Error Message");
-    fToolTip->setSize(350, 50);
-    fToolTip->setAbsolutePos(0, 105);
+    fToolTip = new CairoToolTip(this, "This is a Message");
+    sizeGroup->addToSizeGroup(fToolTip, 0, 95, 350, 50);
 
     setGeometryConstraints(kInitialWidth, kInitialHeight, true);
 }
@@ -58,6 +58,8 @@ void UINeuralCapture::parameterChanged(uint32_t index, float value) {
             if (value >=1.0) {
                 fButton->setValue(0.0f);
                 setParameterValue(PluginNeuralCapture::paramButton, 0.0f);
+            } else if (value > 0.9969) {
+                fToolTip->setLabel(pathInfo.c_str());                
             }
             break;
         case PluginNeuralCapture::paramMeter:
@@ -102,6 +104,33 @@ void UINeuralCapture::sampleRateChanged(double newSampleRate) {
 // Optional UI callbacks
 
 /**
+  Get the path were recording been saved
+*/
+
+void UINeuralCapture::getPathInfo(std::string &pInfo)
+{
+    pInfo = "Saved to: ";
+#ifndef  __MOD_DEVICES__
+#if defined(WIN32) || defined(_WIN32)
+    pInfo += getenv("USERPROFILE");
+    if (pInfo.empty()) {
+        pInfo += getenv("HOMEDRIVE");
+        pInfo +=  getenv("HOMEPATH");
+    }
+#else
+    pInfo += getenv("HOME");
+#endif
+    pInfo +=PATH_SEPARATOR;
+    pInfo +="profiles";
+    pInfo +=PATH_SEPARATOR;
+#else
+    pInfo += "/data/user-files/Audio Recordings/profiles/";
+#endif
+    pInfo += "target.wav";
+}
+
+
+/**
   Idle callback.
   This function is called at regular intervals.
 */
@@ -139,21 +168,7 @@ void UINeuralCapture::onCairoDisplay(const CairoGraphicsContext& context) {
 void UINeuralCapture::onResize(const ResizeEvent& ev)
 {
     UI::onResize(ev);
-    const float scaleHFactor = static_cast<float>(ev.size.getHeight())/static_cast<float>(kInitialHeight);
-    const float scaleWFactor = static_cast<float>(ev.size.getWidth())/static_cast<float>(kInitialWidth);
-    const float scaleFactor = scaleHFactor < scaleWFactor ? scaleHFactor : scaleWFactor;
-
-    fButton->setSize(200*scaleFactor, 50*scaleFactor);
-    fButton->setAbsolutePos(75*scaleWFactor, 30*scaleHFactor);
-    
-    fProgressBar->setSize(200*scaleFactor, 30*scaleFactor);
-    fProgressBar->setAbsolutePos(75*scaleWFactor, 105*scaleHFactor);
-    
-    fPeekMeter->setSize( 200*scaleFactor, 50*scaleFactor);
-    fPeekMeter->setAbsolutePos(75*scaleWFactor, 160*scaleHFactor);
-
-    fToolTip->setSize(350*scaleFactor, 50*scaleFactor);
-    fToolTip->setAbsolutePos(0*scaleFactor, 105*scaleFactor);
+    sizeGroup->resizeAspectSizeGroup(ev.size.getWidth(), ev.size.getHeight());
 }
 
 // -----------------------------------------------------------------------

@@ -12,6 +12,7 @@
 #define CAIROWIDGETS_H
 
 #include <functional>
+#include <atomic>
 #include "Cairo.hpp"
 #include "extra/Runner.hpp"
 
@@ -109,24 +110,28 @@ public:
 
 };
 
+// -----------------------------------------------------------------------
+
 class CairoButton : public CairoSubWidget, public CairoShadows
 {
 public:
-    explicit CairoButton(SubWidget* const parent, const char* lab, std::function<void(const uint32_t , float) > setParameterValue_)
+    explicit CairoButton(SubWidget* const parent, const char* lab, const uint32_t index,
+                        std::function<void(const uint32_t , float) > setParameterValue_)
         : CairoSubWidget(parent),
-          setParameterValue(setParameterValue_) {
-            label = lab;
+          setParameterValue(setParameterValue_),
+          label(lab), port(index) {
             value = 0.0f;
             state = 0;
-            }
+          }
 
-    explicit CairoButton(TopLevelWidget* const parent, const char* lab, std::function<void(const uint32_t, float) > setParameterValue_)
+    explicit CairoButton(TopLevelWidget* const parent, const char* lab, const uint32_t index,
+                        std::function<void(const uint32_t, float) > setParameterValue_)
         : CairoSubWidget(parent),
-          setParameterValue(setParameterValue_) {
-            label = lab;
+          setParameterValue(setParameterValue_),
+          label(lab), port(index) {
             value = 0.0f;
             state = 0;
-            }
+          }
 
     void setValue(float v)
     {
@@ -136,7 +141,6 @@ public:
     }
 
 protected:
-
     void onCairoDisplay(const CairoGraphicsContext& context) override
     {
         cairo_t* const cr = context.handle;
@@ -156,7 +160,7 @@ protected:
         if (!state)
             boxShadowOutset(cr, w, h);
         else
-           boxShadowInset(cr, w, h); 
+            boxShadowInset(cr, w, h); 
 
         float offset = 0.0;
         cairo_text_extents_t extents;
@@ -182,17 +186,11 @@ protected:
     {
         if (!event.press)
         {
-            const int w = getWidth();
-            const int h = getHeight();
-            const int mx = event.pos.getX();
-            const int my = event.pos.getY();
-            
-            // inside
-            if (mx >= 0 && my >= 0 && mx < w && my < h)
+            if (contains(event.pos))
             {
                 value = value ? 0.0f : 1.0f;
                 state = !state;
-                setParameterValue(0,  value);
+                setParameterValue(port, value);
                 repaint();
             }
         }
@@ -201,11 +199,11 @@ protected:
     }
 
 private:
-
     std::function<void(const uint32_t, float) > setParameterValue;
     float value;
     uint state;
     const char* label;
+    const uint32_t port;
     DISTRHO_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CairoButton)
 };
 
@@ -217,12 +215,12 @@ public:
     explicit CairoProgressBar(SubWidget* const parent)
         : CairoSubWidget(parent) {
             value = 0.0f;
-            }
+          }
 
     explicit CairoProgressBar(TopLevelWidget* const parent)
         : CairoSubWidget(parent) {
             value = 0.0f;
-            }
+          }
 
     void setValue(float v)
     {
@@ -231,7 +229,6 @@ public:
     }
 
 protected:
-
     void onCairoDisplay(const CairoGraphicsContext& context) override
     {
         cairo_t* const cr = context.handle;
@@ -255,7 +252,7 @@ protected:
         char s[64];
         snprintf(s, 63,"%d%%",  (int) (value * 100.0));
         cairo_text_extents(cr,s , &extents);
-        cairo_move_to (cr, width * 0.5-extents.width * 0.5,  height * 0.5 + extents.height * 0.5 );
+        cairo_move_to (cr, width * 0.5 - extents.width * 0.5,  height * 0.5 + extents.height * 0.5 );
         cairo_set_source_rgba(cr, 0.63, 0.63, 0.63, 1.0);
         cairo_set_operator(cr, CAIRO_OPERATOR_ADD);
         cairo_show_text(cr, s);
@@ -276,25 +273,21 @@ private:
 class CairoPeekMeter : public CairoSubWidget, public CairoShadows
 {
 public:
-    explicit CairoPeekMeter(SubWidget* const parent, int w, int h)
+    explicit CairoPeekMeter(SubWidget* const parent)
         : CairoSubWidget(parent),
           image(nullptr) {
             old_value = -70.0f;
             std_value = -70.0f;
             value = -70.0f;
-            setSize(w, h);
-            drawMeterImage(w, h * 0.5);
-            }
+          }
 
-    explicit CairoPeekMeter(TopLevelWidget* const parent, int w, int h)
+    explicit CairoPeekMeter(TopLevelWidget* const parent)
         : CairoSubWidget(parent),
           image(nullptr) {
             old_value = -70.0f;
             std_value = -70.0f;
             value = -70.0f;
-            setSize(w, h);
-            drawMeterImage(w, h * 0.5);
-            }
+          }
 
     void setValue(float v)
     {
@@ -307,7 +300,6 @@ public:
     }
 
 protected:
-
     float power2db(float power)
     {
         const float falloff = 27 * 60 * 0.0005;
@@ -499,38 +491,38 @@ class CairoToolTip : public CairoSubWidget, public Runner
 public:
     explicit CairoToolTip(SubWidget* const parent_, const char* lab)
         : CairoSubWidget(parent_),
-          parent(parent_) {
-            label = lab;
+          parent(parent_), label(lab) {
             hide();
-            state = 0;
-            }
+            state.store(false, std::memory_order_release);
+          }
 
     explicit CairoToolTip(TopLevelWidget* const parent_, const char* lab)
         : CairoSubWidget(parent_),
-          parent(parent_) {
-            label = lab;
+          parent(parent_), label(lab) {
             hide();
-            state = 0;
-            }
+            state.store(false, std::memory_order_release);
+          }
 
     ~CairoToolTip() {if (isRunnerActive()) stopRunner();}
 
     void setLabel(const char* lab)
     {
         label = lab;
-        show();
+        state.store(false, std::memory_order_release);
+        if (!isRunnerActive()) {
+            if (!isVisible()) show();
+            startRunner(2500);
+        }
         repaint();
-        if (!isRunnerActive()) startRunner(2500);
     }
     
     void unset()
     {
-        hide();
+        if (isVisible()) hide();
         parent->repaint();
     }
 
 protected:
-
     void onCairoDisplay(const CairoGraphicsContext& context) override
     {
         cairo_t* const cr = context.handle;
@@ -547,7 +539,7 @@ protected:
         cairo_stroke(cr);
         cairo_text_extents_t extents;
         cairo_set_source_rgba(cr, 0.63, 0.63, 0.63, 1.0);
-        cairo_set_font_size (cr, h * 0.26);
+        cairo_set_font_size (cr, h * 0.24);
         cairo_select_font_face (cr, "Sans", CAIRO_FONT_SLANT_NORMAL,
                                    CAIRO_FONT_WEIGHT_BOLD);
         cairo_text_extents(cr, label , &extents);
@@ -561,20 +553,20 @@ protected:
 
     bool run() override
     {
-        if (state) {
-            state = 0;
+        if (state.load(std::memory_order_acquire)) {
+            state.store(false, std::memory_order_release);
             unset();
             return false;
         } else {
-            state = 1;
+            state.store(true, std::memory_order_release);
             return true;
         }
     }
 
 private:
-    Widget* parent;
+    Widget * const parent;
     const char* label;
-    uint state;
+    std::atomic<bool> state;
     DISTRHO_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CairoToolTip)
 };
 

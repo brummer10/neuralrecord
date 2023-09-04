@@ -4,6 +4,26 @@ A Neural Recorder plug to make the process of cloning external soft/hardware a b
 
 ![NeuralRecord](https://github.com/brummer10/neuralrecord/blob/main/NeuralRecord.png?raw=true)
 
+Features a round trip measurement routine.
+This allows to load the plug, connect the output to the system output,
+loop over external gear (soft or hardware) and back to the Recorder input.
+
+Simply press "Capture" to play the "input.wav" file to the output and record the returning input
+delayed by the measured round trip latency.
+
+Resulting recorded "target.wav" file will be perfectly in sync with the used "input.wav" file.
+Currently, both files would be saved under "$(HOME)/profiles/".
+The "target.wav" file will be overwritten on each Capture run, so there will be always only one target file.
+You need to upload it from the device in order to use it with the AIDA-X or NAM trainer.
+
+The "input.wav" file comes as resource with the plug (hence the big size of the binary packages) and get copied over to that folder,
+when no input.wav file was found there.
+This allows advanced users to use their own input.wav file by simply replace the one in that folder.
+
+The target.wav file get checked during record and run to a normalisation function when needed.
+(Only when the max peek in target is above the max peek in input).
+
+The record will be saved in the PCM24 wav format (same as the input.wav file).
 
 ## Formats
 
