@@ -115,22 +115,24 @@ public:
 class CairoButton : public CairoSubWidget, public CairoShadows
 {
 public:
-    explicit CairoButton(SubWidget* const parent, const char* lab, const uint32_t index,
-                        std::function<void(const uint32_t , float) > setParameterValue_)
+    explicit CairoButton(SubWidget* const parent, const char* lab, const uint32_t index)
         : CairoSubWidget(parent),
-          setParameterValue(setParameterValue_),
+          setParameterValue([parent] (const uint32_t index, float value)
+                {dynamic_cast<UI*>(parent)->setParameterValue(index, value);}),
           label(lab), port(index) {
             value = 0.0f;
             state = 0;
+            prelight = false;
           }
 
-    explicit CairoButton(TopLevelWidget* const parent, const char* lab, const uint32_t index,
-                        std::function<void(const uint32_t, float) > setParameterValue_)
+    explicit CairoButton(TopLevelWidget* const parent, const char* lab, const uint32_t index)
         : CairoSubWidget(parent),
-          setParameterValue(setParameterValue_),
+          setParameterValue([parent] (const uint32_t index, float value)
+                {dynamic_cast<UI*>(parent)->setParameterValue(index, value);}),
           label(lab), port(index) {
             value = 0.0f;
             state = 0;
+            prelight = false;
           }
 
     void setValue(float v)
@@ -144,31 +146,35 @@ protected:
     void onCairoDisplay(const CairoGraphicsContext& context) override
     {
         cairo_t* const cr = context.handle;
-        cairo_push_group (cr);
-
         const Size<uint> sz = getSize();
         const int w = sz.getWidth();
         const int h = sz.getHeight();
+
+        cairo_push_group (cr);
+
         if (!state)
             cairo_set_source_rgba(cr, 0.13, 0.13, 0.13, 1.0);
         else 
             cairo_set_source_rgba(cr, 0.63, 0.13, 0.13, 1.0);
-        
-        cairo_rectangle(cr, 0, 0, w, h);
-        cairo_fill(cr);
+        cairo_paint(cr);
+
+        if (prelight) {
+            cairo_set_source_rgba(cr, 0.63, 0.63, 0.63, 0.03);
+            cairo_paint(cr);
+        }
 
         if (!state)
             boxShadowOutset(cr, w, h);
         else
             boxShadowInset(cr, w, h); 
 
-        float offset = 0.0;
+        int offset = 0;
         cairo_text_extents_t extents;
         if(state==0) {
             cairo_set_source_rgba(cr, 0.63, 0.63, 0.63, 1.0);
         } else if(state==1) {
             cairo_set_source_rgba(cr, 0.93, 0.63, 0.63, 1.0);
-            offset = 2.0;
+            offset = 2;
         }
         cairo_set_font_size (cr, h/2.2);
         cairo_select_font_face (cr, "Sans", CAIRO_FONT_SLANT_NORMAL,
@@ -177,31 +183,47 @@ protected:
 
         cairo_move_to (cr, (w-extents.width)*0.5 +offset, (h+extents.height)*0.45 +offset);
         cairo_show_text(cr, label);
-        cairo_new_path (cr);
+
         cairo_pop_group_to_source (cr);
         cairo_paint (cr);
     }
 
     bool onMouse(const MouseEvent& event) override
     {
-        if (!event.press)
+        if (!event.press && contains(event.pos)) // mouse button release
         {
-            if (contains(event.pos))
-            {
-                value = value ? 0.0f : 1.0f;
-                state = !state;
-                setParameterValue(port, value);
-                repaint();
-            }
+            value = value ? 0.0f : 1.0f;
+            state = !state;
+            setParameterValue(port, value);
+            repaint();
         }
 
         return CairoSubWidget::onMouse(event);
+    }
+
+    bool onMotion(const MotionEvent& event) override
+    {
+        if (contains(event.pos)) // enter
+        {
+            if (!prelight) {
+                prelight = true;
+                repaint();
+            }
+        }
+        else if (prelight) // leave
+        {
+            prelight = false;
+            repaint();
+        }
+
+        return CairoSubWidget::onMotion(event);
     }
 
 private:
     std::function<void(const uint32_t, float) > setParameterValue;
     float value;
     uint state;
+    bool prelight;
     const char* label;
     const uint32_t port;
     DISTRHO_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CairoButton)

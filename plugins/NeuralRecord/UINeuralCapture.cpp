@@ -21,8 +21,7 @@ UINeuralCapture::UINeuralCapture()
     sizeGroup = new UiSizeGroup(kInitialWidth, kInitialHeight);
     getPathInfo(pathInfo);
 
-    fButton = new CairoButton(this, "Capture", PluginNeuralCapture::paramButton,
-                [this] (const uint32_t index, float value) {this->setParameterValue(index, value);});
+    fButton = new CairoButton(this, "Capture", PluginNeuralCapture::paramButton);
     sizeGroup->addToSizeGroup(fButton, 75, 30, 200, 50);
     
     fProgressBar = new CairoProgressBar(this);
@@ -196,10 +195,12 @@ bool UINeuralCapture::onMouse(const MouseEvent& ev) {
 /**
   A function called when the mouse pointer moves.
 */
+/*
 bool UINeuralCapture::onMotion(const MotionEvent& ev) {
     return false;
     (void)ev;
 }
+*/
 
 /**
   A function called on scrolling (e.g. mouse wheel or track pad).
