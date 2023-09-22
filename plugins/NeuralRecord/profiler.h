@@ -24,6 +24,7 @@
 
 #include <unistd.h>
 #include <semaphore.h>
+#include <fcntl.h>
 #include <pthread.h>
 #include <sys/stat.h>
 
@@ -106,7 +107,7 @@ private:
     float           *fRec1;
     float           *tape;
     float           *tape1;
-    sem_t           m_trig;
+    sem_t           *m_trig;
     pthread_t       m_pthr;
     int32_t         rt_prio;
     int32_t         rt_policy;

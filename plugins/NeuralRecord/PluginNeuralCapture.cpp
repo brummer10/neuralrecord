@@ -71,7 +71,7 @@ void PluginNeuralCapture::initParameter(uint32_t index, Parameter& parameter) {
             parameter.shortName = "Error";
             parameter.symbol = "ERRORS";
             parameter.ranges.min = 0.0f;
-            parameter.ranges.max = 3.0f;
+            parameter.ranges.max = 4.0f;
             parameter.hints = kParameterIsOutput;
             break;
     }

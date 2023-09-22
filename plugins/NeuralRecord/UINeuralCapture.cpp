@@ -15,22 +15,29 @@ START_NAMESPACE_DISTRHO
 // Init / Deinit
 
 UINeuralCapture::UINeuralCapture()
-: UI(350, 250, true)  {
+: UI(350, 250, true), theme() {
     kInitialHeight = 250;
     kInitialWidth = 350;
     sizeGroup = new UiSizeGroup(kInitialWidth, kInitialHeight);
     getPathInfo(pathInfo);
+    inputFile = "Error: Couldn't find ";
+    inputFile += pathInfo;
+    inputFile += "input.wav";
 
-    fButton = new CairoButton(this, "Capture", PluginNeuralCapture::paramButton);
+    outputFile = "Saved to ";
+    outputFile += pathInfo;
+    outputFile += "target.wav";
+
+    fButton = new CairoButton(this, theme, dynamic_cast<UI*>(this), "Capture", PluginNeuralCapture::paramButton);
     sizeGroup->addToSizeGroup(fButton, 75, 30, 200, 50);
     
-    fProgressBar = new CairoProgressBar(this);
+    fProgressBar = new CairoProgressBar(this, theme);
     sizeGroup->addToSizeGroup(fProgressBar, 75, 105, 200, 30);
     
-    fPeekMeter = new CairoPeekMeter(this);
+    fPeekMeter = new CairoPeekMeter(this, theme);
     sizeGroup->addToSizeGroup(fPeekMeter, 75, 160, 200, 50);
 
-    fToolTip = new CairoToolTip(this, "This is a Message");
+    fToolTip = new CairoToolTip(this, theme, "This is a Message");
     sizeGroup->addToSizeGroup(fToolTip, 0, 95, 350, 50);
 
     setGeometryConstraints(kInitialWidth, kInitialHeight, true);
@@ -58,7 +65,7 @@ void UINeuralCapture::parameterChanged(uint32_t index, float value) {
                 fButton->setValue(0.0f);
                 setParameterValue(PluginNeuralCapture::paramButton, 0.0f);
             } else if (value > 0.9969) {
-                fToolTip->setLabel(pathInfo.c_str());                
+                fToolTip->setLabel(outputFile.c_str());                
             }
             break;
         case PluginNeuralCapture::paramMeter:
@@ -74,6 +81,8 @@ void UINeuralCapture::parameterChanged(uint32_t index, float value) {
                 fToolTip->setLabel("Error: seems we receive garbage, stop the process here");
             else if ((int)value == 3) 
                 fToolTip->setLabel("Error: Sample Rate mismatch, please use 48kHz");
+            else if ((int)value == 4) 
+                fToolTip->setLabel(inputFile.c_str());
 
             break;
     }
@@ -108,12 +117,11 @@ void UINeuralCapture::sampleRateChanged(double newSampleRate) {
 
 void UINeuralCapture::getPathInfo(std::string &pInfo)
 {
-    pInfo = "Saved to: ";
 #ifndef  __MOD_DEVICES__
 #if defined(WIN32) || defined(_WIN32)
-    pInfo += getenv("USERPROFILE");
+    pInfo = getenv("USERPROFILE");
     if (pInfo.empty()) {
-        pInfo += getenv("HOMEDRIVE");
+        pInfo = getenv("HOMEDRIVE");
         pInfo +=  getenv("HOMEPATH");
     }
 #else
@@ -125,7 +133,7 @@ void UINeuralCapture::getPathInfo(std::string &pInfo)
 #else
     pInfo += "/data/user-files/Audio Recordings/profiles/";
 #endif
-    pInfo += "target.wav";
+    //pInfo += "target.wav";
 }
 
 
@@ -157,7 +165,7 @@ void UINeuralCapture::onCairoDisplay(const CairoGraphicsContext& context) {
     int height = getHeight();
 
     cairo_push_group (cr);
-    cairo_set_source_rgba(cr, 0.13, 0.13, 0.13, 1.0);
+    theme.setCairoColour(cr, theme.idColourBackground);
     cairo_paint(cr);
     box_shadow(cr, width, height, 25, 25);
     cairo_pop_group_to_source (cr);

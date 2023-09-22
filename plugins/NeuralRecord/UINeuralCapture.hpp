@@ -116,9 +116,12 @@ protected:
     void onResize(const ResizeEvent& ev) override;
 
 private:
+    CairoColourTheme theme;
     int kInitialHeight;
     int kInitialWidth;
     std::string pathInfo;
+    std::string inputFile;
+    std::string outputFile;
     ScopedPointer<UiSizeGroup> sizeGroup;
     ScopedPointer<CairoButton> fButton;
     ScopedPointer<CairoProgressBar> fProgressBar;

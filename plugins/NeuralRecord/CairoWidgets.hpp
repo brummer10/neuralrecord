@@ -18,6 +18,72 @@
 
 START_NAMESPACE_DISTRHO
 
+class CairoColourTheme
+{
+public:
+    CairoColourTheme()
+    {
+        init();
+    }
+
+    struct CairoColour{
+        double r;
+        double g;
+        double b;
+        double a;
+    };
+
+    void setCairoColour(cairo_t* const cr, const CairoColour idColour, bool darken = false)
+    {
+        double darker = 1.0;
+        if (darken) darker = 0.8;
+        cairo_set_source_rgba(cr, idColour.r * darker, idColour.g * darker,
+                                idColour.b * darker, idColour.a);
+    }
+
+    void setIdColour(CairoColour &idColour, double r, double g, double b, double a) {
+        idColour = CairoColour {r, g, b, a};
+    }
+
+    CairoColour idColourBackground;
+    CairoColour idColourBackgroundNormal;
+    CairoColour idColourBackgroundPrelight;
+    CairoColour idColourBackgroundActive;
+    CairoColour idColourBackgroundProgress;
+
+    CairoColour idColourForground;
+    CairoColour idColourForgroundNormal;
+    CairoColour idColourForgroundActive;
+
+    CairoColour idColourFrame;
+
+    CairoColour idColourShadow;
+    CairoColour idColourLight;
+
+protected:
+
+    void init()
+    {
+        setIdColour(idColourBackground, 0.13, 0.13, 0.13, 1);
+        setIdColour(idColourBackgroundNormal, 0.13, 0.13, 0.13, 1.0);
+        setIdColour(idColourBackgroundPrelight, 0.63, 0.63, 0.63, 0.03);
+        setIdColour(idColourBackgroundActive, 0.63, 0.13, 0.13, 1.0);
+        setIdColour(idColourBackgroundProgress, 0.4, 0.4, 0.4, 1.0);
+
+        setIdColour(idColourForground, 0.63, 0.63, 0.63, 1.0);
+        setIdColour(idColourForgroundNormal, 0.63, 0.63, 0.63, 1.0);
+        setIdColour(idColourForgroundActive, 0.93, 0.63, 0.63, 1.0);
+
+        setIdColour(idColourFrame, 0.03, 0.03, 0.03, 1.0);
+
+        setIdColour(idColourShadow,  0.05, 0.05, 0.05, 1.0);
+        setIdColour(idColourLight, 0.33, 0.33, 0.33, 1.0);
+    }
+
+private:
+    DISTRHO_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CairoColourTheme)
+};
+
 // -----------------------------------------------------------------------
 
 class CairoShadows
@@ -115,24 +181,27 @@ public:
 class CairoButton : public CairoSubWidget, public CairoShadows
 {
 public:
-    explicit CairoButton(SubWidget* const parent, const char* lab, const uint32_t index)
+
+    explicit CairoButton(SubWidget* const parent, CairoColourTheme &theme_,
+                            UI *ui, const char* lab, const uint32_t index)
         : CairoSubWidget(parent),
-          setParameterValue([parent] (const uint32_t index, float value)
-                {dynamic_cast<UI*>(parent)->setParameterValue(index, value);}),
-          label(lab), port(index) {
-            value = 0.0f;
-            state = 0;
-            prelight = false;
+          theme(theme_),
+          setParameterValue([ui] (const uint32_t index, float value)
+                                {ui->setParameterValue(index, value);}),
+          label(lab), port(index)
+          {
+            init();
           }
 
-    explicit CairoButton(TopLevelWidget* const parent, const char* lab, const uint32_t index)
+    explicit CairoButton(TopLevelWidget* const parent, CairoColourTheme &theme_,
+                                UI *ui, const char* lab, const uint32_t index)
         : CairoSubWidget(parent),
-          setParameterValue([parent] (const uint32_t index, float value)
-                {dynamic_cast<UI*>(parent)->setParameterValue(index, value);}),
-          label(lab), port(index) {
-            value = 0.0f;
-            state = 0;
-            prelight = false;
+          theme(theme_),
+          setParameterValue([ui] (const uint32_t index, float value)
+                                {ui->setParameterValue(index, value);}),
+          label(lab), port(index)
+          {
+            init();
           }
 
     void setValue(float v)
@@ -143,6 +212,14 @@ public:
     }
 
 protected:
+
+    void init()
+    {
+        value = 0.0f;
+        state = 0;
+        prelight = false;
+    }
+
     void onCairoDisplay(const CairoGraphicsContext& context) override
     {
         cairo_t* const cr = context.handle;
@@ -153,13 +230,13 @@ protected:
         cairo_push_group (cr);
 
         if (!state)
-            cairo_set_source_rgba(cr, 0.13, 0.13, 0.13, 1.0);
+            theme.setCairoColour(cr, theme.idColourBackgroundNormal);
         else 
-            cairo_set_source_rgba(cr, 0.63, 0.13, 0.13, 1.0);
+            theme.setCairoColour(cr, theme.idColourBackgroundActive);
         cairo_paint(cr);
 
         if (prelight) {
-            cairo_set_source_rgba(cr, 0.63, 0.63, 0.63, 0.03);
+            theme.setCairoColour(cr, theme.idColourBackgroundPrelight);
             cairo_paint(cr);
         }
 
@@ -171,9 +248,9 @@ protected:
         int offset = 0;
         cairo_text_extents_t extents;
         if(state==0) {
-            cairo_set_source_rgba(cr, 0.63, 0.63, 0.63, 1.0);
+            theme.setCairoColour(cr, theme.idColourForgroundNormal);
         } else if(state==1) {
-            cairo_set_source_rgba(cr, 0.93, 0.63, 0.63, 1.0);
+            theme.setCairoColour(cr, theme.idColourForgroundActive);
             offset = 2;
         }
         cairo_set_font_size (cr, h/2.2);
@@ -220,6 +297,7 @@ protected:
     }
 
 private:
+    CairoColourTheme &theme;
     std::function<void(const uint32_t, float) > setParameterValue;
     float value;
     uint state;
@@ -234,14 +312,19 @@ private:
 class CairoProgressBar : public CairoSubWidget, public CairoShadows
 {
 public:
-    explicit CairoProgressBar(SubWidget* const parent)
-        : CairoSubWidget(parent) {
-            value = 0.0f;
+
+    explicit CairoProgressBar(SubWidget* const parent, CairoColourTheme &theme_)
+        : CairoSubWidget(parent),
+          theme(theme_)
+          {
+            init();
           }
 
-    explicit CairoProgressBar(TopLevelWidget* const parent)
-        : CairoSubWidget(parent) {
-            value = 0.0f;
+    explicit CairoProgressBar(TopLevelWidget* const parent, CairoColourTheme &theme_)
+        : CairoSubWidget(parent),
+          theme(theme_)
+          {
+            init();
           }
 
     void setValue(float v)
@@ -251,6 +334,11 @@ public:
     }
 
 protected:
+    void init()
+    {
+        value = 0.0f;
+    }
+
     void onCairoDisplay(const CairoGraphicsContext& context) override
     {
         cairo_t* const cr = context.handle;
@@ -260,12 +348,12 @@ protected:
         const int width = sz.getWidth();
         const int height = sz.getHeight();
 
-        cairo_set_source_rgba(cr, 0.03, 0.03, 0.03, 1.0);
+        theme.setCairoColour(cr,theme.idColourFrame);
         cairo_rectangle(cr,0, 0, width, height);
         cairo_set_line_width(cr,2);
         cairo_stroke(cr);
 
-        cairo_set_source_rgba(cr, 0.4, 0.4, 0.4, 1.0);
+        theme.setCairoColour(cr, theme.idColourBackgroundProgress);
         cairo_rectangle(cr,0, 0, width * value, height);
         cairo_fill(cr);
 
@@ -275,7 +363,7 @@ protected:
         snprintf(s, 63,"%d%%",  (int) (value * 100.0));
         cairo_text_extents(cr,s , &extents);
         cairo_move_to (cr, width * 0.5 - extents.width * 0.5,  height * 0.5 + extents.height * 0.5 );
-        cairo_set_source_rgba(cr, 0.63, 0.63, 0.63, 1.0);
+        theme.setCairoColour(cr, theme.idColourForground);
         cairo_set_operator(cr, CAIRO_OPERATOR_ADD);
         cairo_show_text(cr, s);
         cairo_set_operator(cr, CAIRO_OPERATOR_OVER);
@@ -286,6 +374,7 @@ protected:
     }
 
 private:
+    CairoColourTheme &theme;
     float value;
     DISTRHO_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CairoProgressBar)
 };
@@ -295,20 +384,21 @@ private:
 class CairoPeekMeter : public CairoSubWidget, public CairoShadows
 {
 public:
-    explicit CairoPeekMeter(SubWidget* const parent)
+
+    explicit CairoPeekMeter(SubWidget* const parent, CairoColourTheme &theme_)
         : CairoSubWidget(parent),
-          image(nullptr) {
-            old_value = -70.0f;
-            std_value = -70.0f;
-            value = -70.0f;
+          image(nullptr),
+          theme(theme_)
+          {
+            init();
           }
 
-    explicit CairoPeekMeter(TopLevelWidget* const parent)
+    explicit CairoPeekMeter(TopLevelWidget* const parent, CairoColourTheme &theme_)
         : CairoSubWidget(parent),
-          image(nullptr) {
-            old_value = -70.0f;
-            std_value = -70.0f;
-            value = -70.0f;
+          image(nullptr),
+          theme(theme_)
+          {
+            init();
           }
 
     void setValue(float v)
@@ -322,6 +412,13 @@ public:
     }
 
 protected:
+    void init()
+    {
+        old_value = -70.0f;
+        std_value = -70.0f;
+        value = -70.0f;
+    }
+
     float power2db(float power)
     {
         const float falloff = 27 * 60 * 0.0005;
@@ -381,7 +478,7 @@ protected:
         cairo_t *cri = cairo_create (image);
         cairo_push_group (cri);
 
-        cairo_set_source_rgba(cri, 0.03, 0.03, 0.03, 1);
+        theme.setCairoColour(cri, theme.idColourFrame);
         cairo_paint(cri);
 
         cairo_pattern_t *pat = cairo_pattern_create_linear (0, 0, width, 0.0);
@@ -438,7 +535,7 @@ protected:
         char  buf[32];
 
         cairo_set_font_size (cr, (float)rect_height * 0.5);
-        cairo_set_source_rgba(cr, 0.6, 0.6, 0.6, 0.6);
+        theme.setCairoColour(cr, theme.idColourForground);
 
         for (unsigned int i = 0; i < sizeof (db_points)/sizeof (db_points[0]); ++i)
         {
@@ -460,7 +557,7 @@ protected:
             cairo_show_text (cr, buf);
         }
 
-        cairo_set_source_rgba(cr, 0.6, 0.6, 0.6, 0.6);
+        theme.setCairoColour(cr, theme.idColourForground);
         cairo_set_line_width(cr, 1.5);
         cairo_stroke(cr);
     }
@@ -500,6 +597,7 @@ protected:
 
 private:
     cairo_surface_t* image;
+    CairoColourTheme &theme;
     float value;
     float old_value;
     float std_value;
@@ -511,18 +609,23 @@ private:
 class CairoToolTip : public CairoSubWidget, public Runner
 {
 public:
-    explicit CairoToolTip(SubWidget* const parent_, const char* lab)
+
+    explicit CairoToolTip(SubWidget* const parent_, CairoColourTheme &theme_, const char* lab)
         : CairoSubWidget(parent_),
-          parent(parent_), label(lab) {
-            hide();
-            state.store(false, std::memory_order_release);
+          parent(parent_),
+          theme(theme_),
+          label(lab)
+          {
+            init();
           }
 
-    explicit CairoToolTip(TopLevelWidget* const parent_, const char* lab)
+    explicit CairoToolTip(TopLevelWidget* const parent_, CairoColourTheme &theme_, const char* lab)
         : CairoSubWidget(parent_),
-          parent(parent_), label(lab) {
-            hide();
-            state.store(false, std::memory_order_release);
+          parent(parent_),
+          theme(theme_),
+          label(lab)
+          {
+            init();
           }
 
     ~CairoToolTip() {if (isRunnerActive()) stopRunner();}
@@ -545,6 +648,12 @@ public:
     }
 
 protected:
+    void init()
+    {
+        hide();
+        state.store(false, std::memory_order_release);
+    }
+
     void onCairoDisplay(const CairoGraphicsContext& context) override
     {
         cairo_t* const cr = context.handle;
@@ -553,14 +662,14 @@ protected:
         const Size<uint> sz = getSize();
         const int w = sz.getWidth();
         const int h = sz.getHeight();
-        cairo_set_source_rgba(cr, 0.13, 0.13, 0.13, 1.0);
+        theme.setCairoColour(cr, theme.idColourBackground);
         
         cairo_rectangle(cr, 0, 0, w, h);
         cairo_fill_preserve(cr);
-        cairo_set_source_rgba(cr, 0., 0., 0., 1.0);
+        theme.setCairoColour(cr, theme.idColourFrame);
         cairo_stroke(cr);
         cairo_text_extents_t extents;
-        cairo_set_source_rgba(cr, 0.63, 0.63, 0.63, 1.0);
+        theme.setCairoColour(cr, theme.idColourForground);
         cairo_set_font_size (cr, h * 0.24);
         cairo_select_font_face (cr, "Sans", CAIRO_FONT_SLANT_NORMAL,
                                    CAIRO_FONT_WEIGHT_BOLD);
@@ -587,6 +696,7 @@ protected:
 
 private:
     Widget * const parent;
+    CairoColourTheme &theme;
     const char* label;
     std::atomic<bool> state;
     DISTRHO_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CairoToolTip)

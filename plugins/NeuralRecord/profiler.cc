@@ -209,13 +209,19 @@ Profil::Profil(int channel_, std::function<void(const uint32_t , float) > setOut
       err(false),
       setOutputParameterValue(setOutputParameterValue_),
       requestParameterValueChange(requestParameterValueChange_) {
-    sem_init(&m_trig, 0, 0);
+    sem_unlink("/nrecord");
+    m_trig = sem_open("/nrecord", O_CREAT|O_EXCL, S_IRWXU, 0);
+    if(m_trig == SEM_FAILED){
+        err = true;
+    }
 }
+
 
 Profil::~Profil() {
     stop_thread();
     free(mtdm);
     activate(false);
+    sem_unlink("/nrecord");
 }
 
 // get the path were we are installed
@@ -281,7 +287,7 @@ inline std::string Profil::get_ifilename() {
     iname += PATH_SEPARATOR;
     iname += "input.wav";
     std::string oname = get_path() + "input.wav";
-    if (stat (oname.c_str(), &sb) != 0) {
+    if (stat (oname.c_str(), &sb) != 0 && stat (iname.c_str(), &sb) == 0) {
         std::ifstream src(iname.c_str(), std::ios::binary);
         std::ofstream dest(oname.c_str(), std::ios::binary);
         dest << src.rdbuf();
@@ -318,7 +324,7 @@ inline int Profil::load_from_wave(std::string fname) {
 // save the chunks to disk
 void Profil::disc_stream() {
     for (;;) {
-        sem_wait(&m_trig);
+        sem_wait(m_trig);
         if (!recfile) {
             std::string fname = get_ffilename();
             recfile = open_stream(fname);
@@ -400,6 +406,7 @@ inline void Profil::init(unsigned int samplingFreq) {
     fSamplingFreq = samplingFreq;
     IOTA = 0;
     IOTAP = 0;
+    inputsize = 0;
     latency = 0;
     roundtrip = 0;
     measure = 0;
@@ -525,7 +532,7 @@ void always_inline Profil::compute(int count, const float *input0, float *output
     if (iSlow0 && !roundtrip) {
         mtdm_process (mtdm, count, input0, output0);
         measure++;
-        if (measure < 64) return;
+        if (measure < 128) return;
     }
     // resolve roundtrip latency after 64 frames
     if (measure && !roundtrip) {
@@ -560,6 +567,15 @@ void always_inline Profil::compute(int count, const float *input0, float *output
             //fprintf (stderr, "seems we receive garbage, stop the process here\n");
             return;
         }
+        if (!inputsize) {
+            roundtrip = 0;
+            measure = 0;
+            finish = 1;
+            errors = 4.0;
+            setOutputParameterValue(ERRORS, errors);
+            requestParameterValueChange((PortIndex)PROFILE, 0.0f);
+            return;
+        }
         // clear the roundtrip measurement struct
         mtdm_clear(mtdm);
     }
@@ -589,7 +605,7 @@ void always_inline Profil::compute(int count, const float *input0, float *output
                 tape = iA ? fRec0 : fRec1;
                 keep_stream = true;
                 savesize = IOTA;
-                sem_post(&m_trig);
+                sem_post(m_trig);
                 IOTA = 0;
             }
             // play input.wav file once
@@ -621,7 +637,7 @@ void always_inline Profil::compute(int count, const float *input0, float *output
             tape = iA ? fRec1 : fRec0;
             savesize = IOTA;
             keep_stream = false;
-            sem_post(&m_trig);
+            sem_post(m_trig);
             IOTA = 0;
             iA = 0;
             IOTAP = 0;
@@ -641,7 +657,10 @@ void always_inline Profil::compute(int count, const float *input0, float *output
      fbargraph = 20.*log10(fmax(fRef,fRecb2[0]));
      setOutputParameterValue(METER, fbargraph);
     // progress bar
-     fbargraph1 = finish ? 1.0 : float(float(IOTAP) / float(inputsize));
+     if (inputsize)
+        fbargraph1 = finish ? 1.0 : float(float(IOTAP) / float(inputsize));
+     else
+        fbargraph1 = 0.0;
      setOutputParameterValue(STATE, fbargraph1);
      reset_errors++;
      if (reset_errors > 2000) {
