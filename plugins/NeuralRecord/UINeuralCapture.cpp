@@ -40,7 +40,6 @@ UINeuralCapture::UINeuralCapture()
     fToolTip = new CairoToolTip(this, theme, "This is a Message");
     sizeGroup->addToSizeGroup(fToolTip, 0, 95, 350, 50);
 
-    setGeometryConstraints(kInitialWidth, kInitialHeight, true);
 }
 
 UINeuralCapture::~UINeuralCapture() {
@@ -167,7 +166,7 @@ void UINeuralCapture::onCairoDisplay(const CairoGraphicsContext& context) {
     cairo_push_group (cr);
     theme.setCairoColour(cr, theme.idColourBackground);
     cairo_paint(cr);
-    box_shadow(cr, width, height, 25, 25);
+    theme.boxShadow(cr, width, height, 25, 25);
     cairo_pop_group_to_source (cr);
     cairo_paint (cr);
 }

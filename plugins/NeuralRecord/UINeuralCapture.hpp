@@ -92,7 +92,7 @@ private:
   The main UI class
 */
 
-class UINeuralCapture : public UI, public CairoShadows
+class UINeuralCapture : public UI
 {
 public:
     UINeuralCapture();

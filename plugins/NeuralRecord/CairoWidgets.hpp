@@ -33,16 +33,127 @@ public:
         double a;
     };
 
-    void setCairoColour(cairo_t* const cr, const CairoColour idColour, bool darken = false)
+    void setCairoColour(cairo_t* const cr, const CairoColour idColour, float darker = 0.8f)
     {
-        double darker = 1.0;
-        if (darken) darker = 0.8;
         cairo_set_source_rgba(cr, idColour.r * darker, idColour.g * darker,
                                 idColour.b * darker, idColour.a);
     }
 
     void setIdColour(CairoColour &idColour, double r, double g, double b, double a) {
         idColour = CairoColour {r, g, b, a};
+    }
+
+    void boxShadowInset(cairo_t* const cr, int width, int height)
+    {
+        cairo_pattern_t *pat = cairo_pattern_create_linear (0, 0, width, 0);
+        cairo_pattern_add_color_stop_rgba
+            (pat, 1, idColourBoxLight.r, idColourBoxLight.g, idColourBoxLight.b, idColourBoxLight.a);
+        cairo_pattern_add_color_stop_rgba
+            (pat, 0.95, idColourBoxLight.r * 0.6, idColourBoxLight.g * 0.6, idColourBoxLight.b * 0.6, 0.0);
+        cairo_pattern_add_color_stop_rgba
+            (pat, 0.1, idColourBoxShadow.r * 2.0, idColourBoxShadow.g * 2.0, idColourBoxShadow.b * 2.0, 0.0);
+        cairo_pattern_add_color_stop_rgba
+            (pat, 0, idColourBoxShadow.r, idColourBoxShadow.g, idColourBoxShadow.b, idColourBoxShadow.a);
+        cairo_set_source(cr, pat);
+        cairo_paint (cr);
+        cairo_pattern_destroy (pat);
+        pat = NULL;
+        pat = cairo_pattern_create_linear (0, 0, 0, height);
+        cairo_pattern_add_color_stop_rgba
+            (pat, 1, idColourBoxLight.r, idColourBoxLight.g, idColourBoxLight.b, idColourBoxLight.a);
+        cairo_pattern_add_color_stop_rgba
+            (pat, 0.9, idColourBoxLight.r * 0.6, idColourBoxLight.g * 0.6, idColourBoxLight.b * 0.6, 0.0);
+        cairo_pattern_add_color_stop_rgba
+            (pat, 0.1, idColourBoxShadow.r * 2.0, idColourBoxShadow.g * 2.0, idColourBoxShadow.b * 2.0, 0.0);
+        cairo_pattern_add_color_stop_rgba 
+            (pat, 0, idColourBoxShadow.r, idColourBoxShadow.g, idColourBoxShadow.b, idColourBoxShadow.a);
+        cairo_set_source(cr, pat);
+        cairo_paint (cr);
+        cairo_pattern_destroy (pat);
+    }
+
+    void boxShadowOutset(cairo_t* const cr, int width, int height)
+    {
+        cairo_pattern_t *pat = cairo_pattern_create_linear (0, 0, width, 0);
+        cairo_pattern_add_color_stop_rgba
+            (pat, 0, idColourBoxLight.r, idColourBoxLight.g, idColourBoxLight.b, idColourBoxLight.a);
+        cairo_pattern_add_color_stop_rgba
+            (pat, 0.05, idColourBoxLight.r * 0.6, idColourBoxLight.g * 0.6, idColourBoxLight.b * 0.6, 0.0);
+        cairo_pattern_add_color_stop_rgba
+            (pat, 0.95, idColourBoxShadow.r * 2.0, idColourBoxShadow.g * 2.0, idColourBoxShadow.b * 2.0, 0.0);
+        cairo_pattern_add_color_stop_rgba 
+            (pat, 1, idColourBoxShadow.r, idColourBoxShadow.g, idColourBoxShadow.b, idColourBoxShadow.a);
+        cairo_set_source(cr, pat);
+        cairo_paint (cr);
+        cairo_pattern_destroy (pat);
+        pat = NULL;
+        pat = cairo_pattern_create_linear (0, 0, 0, height);
+        cairo_pattern_add_color_stop_rgba
+            (pat, 0, idColourBoxLight.r, idColourBoxLight.g, idColourBoxLight.b, idColourBoxLight.a);
+        cairo_pattern_add_color_stop_rgba
+            (pat, 0.1, idColourBoxLight.r * 0.6, idColourBoxLight.g * 0.6, idColourBoxLight.b * 0.6, 0.0);
+        cairo_pattern_add_color_stop_rgba
+            (pat, 0.9, idColourBoxShadow.r * 2.0, idColourBoxShadow.g * 2.0, idColourBoxShadow.b * 2.0, 0.0);
+        cairo_pattern_add_color_stop_rgba
+            (pat, 1, idColourBoxShadow.r, idColourBoxShadow.g, idColourBoxShadow.b, idColourBoxShadow.a);
+        cairo_set_source(cr, pat);
+        cairo_paint (cr);
+        cairo_pattern_destroy (pat);
+    }
+
+    void boxShadow(cairo_t* const cr, int width, int height, int w, int h)
+    {
+        cairo_pattern_t *pat = cairo_pattern_create_linear (0, 0, w, 0);
+        cairo_pattern_add_color_stop_rgba
+            (pat, 0, idColourBoxLight.r, idColourBoxLight.g, idColourBoxLight.b, idColourBoxLight.a * 0.8);
+        cairo_pattern_add_color_stop_rgba
+            (pat, 0.4, idColourBoxLight.r, idColourBoxLight.g, idColourBoxLight.b, idColourBoxLight.a * 0.3);
+        cairo_pattern_add_color_stop_rgba
+            (pat, 1, idColourBoxLight.r, idColourBoxLight.g, idColourBoxLight.b, idColourBoxLight.a * 0.0);
+        cairo_pattern_set_extend(pat, CAIRO_EXTEND_NONE);
+        cairo_set_source(cr, pat);
+        cairo_paint (cr);
+        cairo_pattern_destroy (pat);
+        pat = NULL;
+
+        pat = cairo_pattern_create_linear (0, 0, 0, h);
+        cairo_pattern_add_color_stop_rgba
+            (pat, 0, idColourBoxLight.r, idColourBoxLight.g, idColourBoxLight.b, idColourBoxLight.a * 0.8);
+        cairo_pattern_add_color_stop_rgba
+            (pat, 0.4, idColourBoxLight.r, idColourBoxLight.g, idColourBoxLight.b, idColourBoxLight.a * 0.3);
+        cairo_pattern_add_color_stop_rgba
+            (pat, 1, idColourBoxLight.r, idColourBoxLight.g, idColourBoxLight.b, idColourBoxLight.a * 0.0);
+        cairo_pattern_set_extend(pat, CAIRO_EXTEND_NONE);
+        cairo_set_source(cr, pat);
+        cairo_paint (cr);
+        cairo_pattern_destroy (pat);
+        pat = NULL;
+
+        pat = cairo_pattern_create_linear (width - w, 0, width, 0);
+        cairo_pattern_add_color_stop_rgba
+            (pat, 0, idColourBoxShadow.r, idColourBoxShadow.g, idColourBoxShadow.b, idColourBoxShadow.a * 0.0);
+        cairo_pattern_add_color_stop_rgba
+            (pat, 0.4, idColourBoxShadow.r, idColourBoxShadow.g, idColourBoxShadow.b, idColourBoxShadow.a * 0.3);
+        cairo_pattern_add_color_stop_rgba
+            (pat, 1, idColourBoxShadow.r, idColourBoxShadow.g, idColourBoxShadow.b, idColourBoxShadow.a * 0.8);
+        cairo_pattern_set_extend(pat, CAIRO_EXTEND_NONE);
+        cairo_set_source(cr, pat);
+        cairo_paint (cr);
+        cairo_pattern_destroy (pat);
+        pat = NULL;
+
+        pat = cairo_pattern_create_linear (0, height - h, 0, height);
+        cairo_pattern_add_color_stop_rgba
+            (pat, 0, idColourBoxShadow.r, idColourBoxShadow.g, idColourBoxShadow.b, idColourBoxShadow.a * 0.0);
+        cairo_pattern_add_color_stop_rgba
+            (pat, 0.4, idColourBoxShadow.r, idColourBoxShadow.g, idColourBoxShadow.b, idColourBoxShadow.a * 0.3);
+        cairo_pattern_add_color_stop_rgba
+            (pat, 1, idColourBoxShadow.r, idColourBoxShadow.g, idColourBoxShadow.b, idColourBoxShadow.a * 0.8);
+        cairo_pattern_set_extend(pat, CAIRO_EXTEND_NONE);
+        cairo_set_source(cr, pat);
+        cairo_paint (cr);
+        cairo_pattern_destroy (pat);
+        pat = NULL;
     }
 
     CairoColour idColourBackground;
@@ -57,8 +168,8 @@ public:
 
     CairoColour idColourFrame;
 
-    CairoColour idColourShadow;
-    CairoColour idColourLight;
+    CairoColour idColourBoxShadow;
+    CairoColour idColourBoxLight;
 
 protected:
 
@@ -76,8 +187,8 @@ protected:
 
         setIdColour(idColourFrame, 0.03, 0.03, 0.03, 1.0);
 
-        setIdColour(idColourShadow,  0.05, 0.05, 0.05, 1.0);
-        setIdColour(idColourLight, 0.33, 0.33, 0.33, 1.0);
+        setIdColour(idColourBoxShadow,  0.05, 0.05, 0.05, 1.0);
+        setIdColour(idColourBoxLight, 0.33, 0.33, 0.33, 1.0);
     }
 
 private:
@@ -86,99 +197,7 @@ private:
 
 // -----------------------------------------------------------------------
 
-class CairoShadows
-{
-public:
-    void boxShadowInset(cairo_t* const cr, int width, int height)
-    {
-        cairo_pattern_t *pat = cairo_pattern_create_linear (0, 0, width, 0);
-        cairo_pattern_add_color_stop_rgba (pat, 1,  0.33, 0.33, 0.33, 1.0);
-        cairo_pattern_add_color_stop_rgba (pat, 0.95,  0.2, 0.2, 0.2, 0.0);
-        cairo_pattern_add_color_stop_rgba (pat, 0.1,  0.1, 0.1, 0.1, 0.0);
-        cairo_pattern_add_color_stop_rgba (pat, 0,  0.05, 0.05, 0.05, 1.0);
-        cairo_set_source(cr, pat);
-        cairo_paint (cr);
-        cairo_pattern_destroy (pat);
-        pat = NULL;
-        pat = cairo_pattern_create_linear (0, 0, 0, height);
-        cairo_pattern_add_color_stop_rgba (pat, 1,  0.33, 0.33, 0.33, 1.0);
-        cairo_pattern_add_color_stop_rgba (pat, 0.9,  0.2, 0.2, 0.2, 0.0);
-        cairo_pattern_add_color_stop_rgba (pat, 0.1,  0.1, 0.1, 0.1, 0.0);
-        cairo_pattern_add_color_stop_rgba (pat, 0,  0.05, 0.05, 0.05, 1.0);
-        cairo_set_source(cr, pat);
-        cairo_paint (cr);
-        cairo_pattern_destroy (pat);
-    }
-
-    void boxShadowOutset(cairo_t* const cr, int width, int height)
-    {
-        cairo_pattern_t *pat = cairo_pattern_create_linear (0, 0, width, 0);
-        cairo_pattern_add_color_stop_rgba (pat, 0,  0.33, 0.33, 0.33, 1.0);
-        cairo_pattern_add_color_stop_rgba (pat, 0.05,  0.2, 0.2, 0.2, 0.0);
-        cairo_pattern_add_color_stop_rgba (pat, 0.95,  0.1, 0.1, 0.1, 0.0);
-        cairo_pattern_add_color_stop_rgba (pat, 1,  0.05, 0.05, 0.05, 1.0);
-        cairo_set_source(cr, pat);
-        cairo_paint (cr);
-        cairo_pattern_destroy (pat);
-        pat = NULL;
-        pat = cairo_pattern_create_linear (0, 0, 0, height);
-        cairo_pattern_add_color_stop_rgba (pat, 0,  0.33, 0.33, 0.33, 1.0);
-        cairo_pattern_add_color_stop_rgba (pat, 0.1,  0.2, 0.2, 0.2, 0.0);
-        cairo_pattern_add_color_stop_rgba (pat, 0.9,  0.1, 0.1, 0.1, 0.0);
-        cairo_pattern_add_color_stop_rgba (pat, 1,  0.05, 0.05, 0.05, 1.0);
-        cairo_set_source(cr, pat);
-        cairo_paint (cr);
-        cairo_pattern_destroy (pat);
-    }
-
-    void box_shadow(cairo_t* const cr, int width, int height, int w, int h)
-    {
-        cairo_pattern_t *pat = cairo_pattern_create_linear (0, 0, w, 0);
-        cairo_pattern_add_color_stop_rgba (pat, 0,  0.33, 0.33, 0.33, 0.8);
-        cairo_pattern_add_color_stop_rgba (pat, 0.4,  0.33, 0.33, 0.33, 0.3);
-        cairo_pattern_add_color_stop_rgba (pat, 1,  0.33, 0.33, 0.33, 0.0);
-        cairo_pattern_set_extend(pat, CAIRO_EXTEND_NONE);
-        cairo_set_source(cr, pat);
-        cairo_paint (cr);
-        cairo_pattern_destroy (pat);
-        pat = NULL;
-
-        pat = cairo_pattern_create_linear (0, 0, 0, h);
-        cairo_pattern_add_color_stop_rgba (pat, 0,  0.33, 0.33, 0.33, 0.8);
-        cairo_pattern_add_color_stop_rgba (pat, 0.4,  0.33, 0.33, 0.33, 0.3);
-        cairo_pattern_add_color_stop_rgba (pat, 1,  0.33, 0.33, 0.33, 0.0);
-        cairo_pattern_set_extend(pat, CAIRO_EXTEND_NONE);
-        cairo_set_source(cr, pat);
-        cairo_paint (cr);
-        cairo_pattern_destroy (pat);
-        pat = NULL;
-
-        pat = cairo_pattern_create_linear (width - w, 0, width, 0);
-        cairo_pattern_add_color_stop_rgba (pat, 0,  0.05, 0.05, 0.05, 0.0);
-        cairo_pattern_add_color_stop_rgba (pat, 0.4,  0.05, 0.05, 0.05, 0.3);
-        cairo_pattern_add_color_stop_rgba (pat, 1,  0.05, 0.05, 0.05, 0.8);
-        cairo_pattern_set_extend(pat, CAIRO_EXTEND_NONE);
-        cairo_set_source(cr, pat);
-        cairo_paint (cr);
-        cairo_pattern_destroy (pat);
-        pat = NULL;
-
-        pat = cairo_pattern_create_linear (0, height - h, 0, height);
-        cairo_pattern_add_color_stop_rgba (pat, 0,  0.05, 0.05, 0.05, 0.0);
-        cairo_pattern_add_color_stop_rgba (pat, 0.4,  0.05, 0.05, 0.05, 0.3);
-        cairo_pattern_add_color_stop_rgba (pat, 1,  0.05, 0.05, 0.05, 0.8);
-        cairo_pattern_set_extend(pat, CAIRO_EXTEND_NONE);
-        cairo_set_source(cr, pat);
-        cairo_paint (cr);
-        cairo_pattern_destroy (pat);
-        pat = NULL;
-    }
-
-};
-
-// -----------------------------------------------------------------------
-
-class CairoButton : public CairoSubWidget, public CairoShadows
+class CairoButton : public CairoSubWidget
 {
 public:
 
@@ -241,9 +260,9 @@ protected:
         }
 
         if (!state)
-            boxShadowOutset(cr, w, h);
+            theme.boxShadowOutset(cr, w, h);
         else
-            boxShadowInset(cr, w, h); 
+            theme.boxShadowInset(cr, w, h); 
 
         int offset = 0;
         cairo_text_extents_t extents;
@@ -309,7 +328,7 @@ private:
 
 // -----------------------------------------------------------------------
 
-class CairoProgressBar : public CairoSubWidget, public CairoShadows
+class CairoProgressBar : public CairoSubWidget
 {
 public:
 
@@ -368,7 +387,7 @@ protected:
         cairo_show_text(cr, s);
         cairo_set_operator(cr, CAIRO_OPERATOR_OVER);
         cairo_new_path (cr);
-        boxShadowInset(cr, width, height);
+        theme.boxShadowInset(cr, width, height);
         cairo_pop_group_to_source (cr);
         cairo_paint (cr);
     }
@@ -381,7 +400,7 @@ private:
 
 // -----------------------------------------------------------------------
 
-class CairoPeekMeter : public CairoSubWidget, public CairoShadows
+class CairoPeekMeter : public CairoSubWidget
 {
 public:
 
@@ -583,7 +602,7 @@ protected:
         cairo_rectangle(cr,(width*oldstate)-3, height * 0.5, 3, height * 0.5);
         cairo_fill(cr);
         drawMeterScale(cr, height, width, height * 0.5);
-        boxShadowInset(cr, width, height*2);
+        theme.boxShadowInset(cr, width, height*2);
         cairo_pop_group_to_source (cr);
         cairo_paint (cr);
     }
