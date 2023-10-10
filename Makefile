@@ -12,7 +12,6 @@ Please run "make submodules" to clone the missing Git submodules, then retry.
 =============================================================================
 endef
 
-ifneq ($(MAKECMDGOALS), mod)
 ifneq ($(MAKECMDGOALS), submodules)
 ifeq (,$(wildcard dpf/Makefile.base.mk))
     $(info $(MISSING_SUBMODULES_ERROR))
@@ -20,9 +19,6 @@ ifeq (,$(wildcard dpf/Makefile.base.mk))
 else
     include dpf/Makefile.base.mk
 endif
-endif
-else
-    include dpf/Makefile.base.mk
 endif
 
 # --------------------------------------------------------------
