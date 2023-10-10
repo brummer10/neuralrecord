@@ -1,0 +1,9 @@
+@prefix lv2:   <http://lv2plug.in/ns/lv2core#> .
+@prefix pset:  <http://lv2plug.in/ns/ext/presets#> .
+
+<urn:brummer10:neuralrecord#preset001>
+    lv2:port [
+        lv2:symbol "PROFILE" ;
+        pset:value 0 ;
+    ] .
+

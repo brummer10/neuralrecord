@@ -24,6 +24,7 @@ endif
 # --------------------------------------------------------------
 # Installation directories
 
+BUIDL_MOD ?= false
 PREFIX ?= /usr/local
 BINDIR ?= $(PREFIX)/bin
 LIBDIR ?= $(PREFIX)/lib
@@ -78,6 +79,8 @@ export USER_DSSI_DIR USER_LADSPA_DIR USER_LV2_DIR USER_VST2_DIR USER_VST3_DIR US
 
 all: libs plugins gen
 
+mod: MOD
+
 # --------------------------------------------------------------
 
 submodules:
@@ -88,6 +91,10 @@ libs:
 
 plugins: libs
 	$(MAKE) all -C plugins/NeuralRecord
+
+MOD: clean
+	@BUIDL_MOD=true
+	$(MAKE) mod -C plugins/NeuralRecord
 
 ifneq ($(CROSS_COMPILING),true)
 gen: plugins dpf/utils/lv2_ttl_generator
@@ -117,6 +124,9 @@ install: all
 install-user: all
 	$(MAKE) install-user -C plugins/NeuralRecord
 
+install-mod: mod
+	$(MAKE) install-mod -C plugins/NeuralRecord
+
 # --------------------------------------------------------------
 
-.PHONY: all clean install install-user submodules libs plugins gen
+.PHONY: all mod clean install install-user install-mod submodules libs plugins gen

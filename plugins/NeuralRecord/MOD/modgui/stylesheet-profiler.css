@@ -1,0 +1,202 @@
+/* SIZE */
+.profiler{{{cns}}} {
+    height: 215px;
+    position: relative;
+    width: 295px;
+    border-radius: 30px;
+}
+
+/* SKIN */
+.profiler{{{cns}}} .background {
+    background: #333;
+    box-shadow: 5px 5px 15px #222, inset 5px 5px 10px #444, inset -5px -5px 10px #222;
+    background-size: 295px 215px;
+    background-position: center center;
+    background-repeat: no-repeat;
+    font-family: Helvetica,Arial,Sans-serif;
+    height: 215px;
+    position: absolute;
+    width: 295px;
+    border-radius: 30px;
+}
+
+/* THE AUTHOR */
+.profiler{{{cns}}} .mod-plugin-brand h1 {
+    bottom: 90px;
+    color: #fff;
+    font-size: 14px;
+    left: 54px;
+    line-height: 1;
+    margin: 0;
+    position: absolute;
+}
+
+/* PLUGIN'S NAME */
+.profiler{{{cns}}} .mod-plugin-name h1 {
+    bottom: 25px;
+    font-family: Helvetica,Arial,Sans-serif;
+    font-weight: bold;
+    font-size: 26px;
+    left: 65px;
+    line-height: 1;
+    margin: 0;
+    position: absolute;
+    color: rgba(0,0,0,0.4);
+    text-shadow: 2px 2px 3px rgba(255,255,255,0.1);
+}
+
+/* Progress Bar */
+.profiler{{{cns}}} .progressbar {
+    background: #2b2b2b;
+    border-radius: 13px;
+    margin-top: -60px;
+    margin-left: 60px;
+    height: 20px;
+    width: 180px;
+    padding: 2px;
+    box-shadow: 2px 2px 3px rgba(255,255,255,0.1);
+}
+
+.profiler{{{cns}}} .progress {
+    display: block;
+    background: #3e3e3e;
+    width: 0%;
+    height: 100%;
+    border-radius: 9px;
+    text-align: center;
+    font-family: Helvetica,Arial,Sans-serif;
+    font-weight: bold;
+    color: #fff;
+    font-size: 11px;
+    box-shadow: -5px -5px 15px rgba(219, 39, 44, 0.8), 5px 5px 15px #222, inset 5px 5px 10px rgba(219, 39, 44, 0.8), inset -5px -5px 10px #222;
+}
+
+/* CONTROLS */
+.profiler{{{cns}}} .mod-control-group {
+    cursor: pointer;
+    height: 50px;
+    width: 160px;
+    left: 70px;
+    position: absolute;
+    top: 30px;
+}
+
+.profiler{{{cns}}} .mod-control-group > div {
+    margin-right: 2px;
+}
+
+/* Button */
+.profiler{{{cns}}} .mod-control-group .button {
+    height: 50px;
+    width: 160px;
+    border-radius: 10px;
+    background: #333;
+    box-shadow: -5px -5px 15px #444, 5px 5px 15px #222, inset 5px 5px 10px #444, inset -5px -5px 10px #222;
+    font-family: Helvetica,Arial,Sans-serif;
+    border: none;
+    font-size: 16px;
+    color: rgb(161, 161, 161);
+    transition: 500ms;
+}
+
+.profiler{{{cns}}} .mod-control-group .button:before {
+    content: "CAPTURE";
+    font-family: Helvetica,Arial,Sans-serif;
+    font-size: 16px;
+    font-weight: bold;
+    position: absolute;
+    top: 18px;
+    left: 44px;
+    color: rgb(161, 161, 161);
+}
+
+
+.profiler{{{cns}}} .mod-control-group .button.on {
+    margin: 4px;
+    margin-top: 5px;
+    height: 46px;
+    width: 158px;
+    border-radius: 12px;
+    box-shadow: -5px -5px 15px #292929, 5px 5px 15px #444, inset 5px 5px 10px #2b2b2b, inset -5px -5px 10px #292929;
+    color: #d6d6d6;
+    text-shadow: 0 1px 0 rgba(255, 5, 5, 0.8);
+    transition: 500ms;
+}
+
+.profiler{{{cns}}} .mod-control-group .button.off {
+    margin: 2px;
+    margin-top: 5px;
+    height: 50px;
+    width: 160px;
+    box-shadow: -5px -5px 15px #444, 5px 5px 15px #222, inset 5px 5px 10px #444, inset -5px -5px 10px #222;
+    color: #d6d6d6;
+    transition: 500ms;
+}
+
+/* Led */
+.profiler{{{cns}}} .mod-led {
+    background: #2b2b2b;
+    background-position: left 0px;
+    background-repeat: no-repeat;
+    position: absolute;
+    margin-top: 35px;
+    margin-left: 30px;
+    height: 10px;
+    width: 10px;
+    z-index: 3;
+    border-radius: 10px;
+    box-shadow: 2px 2px 3px rgba(255,255,255,0.1);
+}
+
+/* VU-Meter */
+.profiler{{{cns}}} .meterbar{
+
+    background: #2b2b2b;
+    border-radius: 13px;
+    margin-top: 40px;
+    margin-left: 30px;
+    height: 142px;
+    width: 10px;
+    padding: 3px;
+    transform: rotate(180deg);
+    box-shadow: -2px -2px 3px rgba(255,255,255,0.1);
+}
+
+.profiler{{{cns}}} .meter{
+    margin-left: -1px;
+    width: 6px;
+    height: 0%;
+    background-size: 20px 142px;
+    background-image:
+    linear-gradient(
+      rgba(35, 145, 0, 0.8),
+      rgba(255, 255, 0, 0.8), 
+      rgba(255, 255, 0, 0.8),
+      rgba(242, 121, 0, 0.8),
+      red
+    );
+    box-shadow: 5px 5px 15px rgba(35, 145, 0, 0.8);
+    border-radius: 13px;
+}
+
+/* PopUp Box */
+.profiler{{{cns}}} .popup {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 560px;
+    height: 60px;
+    transform: translate(-50%, -50%);
+    background-color: #333;
+    text-align: center;
+    font-family: Helvetica,Arial,Sans-serif;
+    font-weight: bold;
+    font-size: 26px;
+    line-height: 1;
+    color: rgba(0,0,0,0.4);
+    border: solid;
+    border-radius: 5px;
+    z-index: 40;
+}
+
