@@ -283,16 +283,31 @@ inline std::string Profil::get_ifilename() {
     struct stat sb;
     char * path = strdup(get_profile_library_path().data());
     std::string iname = dirname(path);
-    iname += PATH_SEPARATOR "resources" PATH_SEPARATOR "input.wav";
+    iname += PATH_SEPARATOR "resources" PATH_SEPARATOR "input.flac";
     std::string oname = get_path() + "input.wav";
     if (stat (oname.c_str(), &sb) != 0 && stat (iname.c_str(), &sb) == 0) {
-        std::ifstream src(iname.c_str(), std::ios::binary);
-        std::ofstream dest(oname.c_str(), std::ios::binary);
-        dest << src.rdbuf();
+        convert_to_wave(iname, oname);
     }
     free(path);
     return oname;
 }
+
+inline void  Profil::convert_to_wave(std::string fname, std::string oname) {
+    if (tape1) { delete[] tape1; tape1 = 0; }
+    int lsize = load_from_wave(fname); // load flac file
+    SF_INFO sfinfo ;
+    sfinfo.channels = channel;
+    sfinfo.samplerate = fSamplingFreq;
+    sfinfo.format = SF_FORMAT_WAV | SF_FORMAT_PCM_24;
+    
+    SNDFILE * sf = sf_open(oname.c_str(), SFM_WRITE, &sfinfo);
+    if (sf) {
+        save_to_wave(sf, tape1, lsize);
+        sf_close(sf);
+    }
+    if (tape1) { delete[] tape1; tape1 = 0; }    
+}
+
 
 // load wav file into buffer
 inline int Profil::load_from_wave(std::string fname) {

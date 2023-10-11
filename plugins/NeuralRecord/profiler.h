@@ -143,6 +143,7 @@ private:
     void        normalize();
     static void *run_thread(void* p);
     inline int  load_from_wave(std::string fname);
+    inline void  convert_to_wave(std::string fname, std::string oname);
     inline std::string get_path(); 
     inline std::string get_ffilename(); 
     inline std::string get_ifilename(); 

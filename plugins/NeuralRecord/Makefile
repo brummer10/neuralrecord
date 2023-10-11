@@ -165,7 +165,7 @@ ifeq ($(BUILD_LV2),true)
 	@mkdir -p -m755 $(USER_LV2_DIR)/$(NAME).lv2 && \
 	  install -m755 $(TARGET_DIR)/$(NAME).lv2/*$(LIB_EXT) $(USER_LV2_DIR)/$(NAME).lv2 && \
 	  install -m644 $(TARGET_DIR)/$(NAME).lv2/*.ttl $(USER_LV2_DIR)/$(NAME).lv2 && \
-	  cp -r $(TARGET_DIR)/$(NAME).lv2/resources $(DESTDIR)$(LV2_DIR)/$(NAME).lv2
+	  cp -r $(TARGET_DIR)/$(NAME).lv2/resources $(USER_LV2_DIR)/$(NAME).lv2
 endif
 ifeq ($(BUILD_JACK),true)
 ifeq ($(HAVE_JACK),true)
