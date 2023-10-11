@@ -1,8 +1,8 @@
 function (event) {
 
-    const meter = event.icon.find ('[mod-role=METER]');
-    const state = event.icon.find ('[mod-role=STATE]');
-    const popup = event.icon.find ('[mod-role=POPUP]');
+    const meter = event.icon.find ('[mod-port-symbol=METER]');
+    const state = event.icon.find ('[mod-port-symbol=STATE]');
+    const popup = event.icon.find ('.popup');
 
     var position = "0";
 

@@ -76,9 +76,11 @@ export USER_DSSI_DIR USER_LADSPA_DIR USER_LV2_DIR USER_VST2_DIR USER_VST3_DIR US
 # --------------------------------------------------------------
 # Targets
 
+ifneq ($(MOD_BUILD),true)
 all: libs plugins gen
-
-mod: MOD
+else
+all: MOD
+endif
 
 # --------------------------------------------------------------
 
@@ -86,12 +88,14 @@ submodules:
 	git submodule update --init --recursive
 
 libs:
-	$(MAKE) -C dpf/dgl ../build/libdgl-cairo.a
+ifeq ($(HAVE_CAIRO),true)
+	$(MAKE) -C dpf/dgl cairo
+endif
 
 plugins: libs
 	$(MAKE) all -C plugins/NeuralRecord
 
-MOD: clean
+MOD:
 	$(MAKE) mod -C plugins/NeuralRecord
 
 ifneq ($(CROSS_COMPILING),true)

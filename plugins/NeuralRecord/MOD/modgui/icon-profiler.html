@@ -1,19 +1,16 @@
 <div class="mod-pedal profiler{{{cns}}}">
-    <div class="popup" mod-role="POPUP"></div>
+    <div class="popup"></div>
     <div class="background">
-
         <div mod-role="drag-handle" class="mod-drag-handle"></div>
         <div class="mod-plugin-name"><h1>{{label}}</h1></div>
         <div class="mod-control-group clearfix">
-            {{#controls.0}}
-            <div id="js-toggle" class="button" mod-role="input-control-port" mod-port-symbol="{{symbol}}" mod-widget="switch"></div>
-            {{/controls.0}}
+            <div id="js-toggle" class="button" mod-role="input-control-port" mod-port-symbol="PROFILE" mod-widget="switch"></div>
         </div>
             <div class="meterbar">
-                <div class="meter" mod-role="METER" mod-port-symbol="{{symbol}}"></div>
+                <div class="meter" mod-port-symbol="METER"></div>
             </div>
-            <div class="progressbar" title="{{comment}}">
-                <div class="progress" mod-role="STATE" mod-port-symbol="{{symbol}}"></div>
+            <div class="progressbar">
+                <div class="progress" mod-port-symbol="STATE"></div>
             </div>
         <div class="mod-pedal-input">
             {{#effect.ports.audio.input}}
