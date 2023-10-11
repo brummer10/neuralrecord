@@ -24,7 +24,6 @@ endif
 # --------------------------------------------------------------
 # Installation directories
 
-BUIDL_MOD ?= false
 PREFIX ?= /usr/local
 BINDIR ?= $(PREFIX)/bin
 LIBDIR ?= $(PREFIX)/lib
@@ -93,7 +92,6 @@ plugins: libs
 	$(MAKE) all -C plugins/NeuralRecord
 
 MOD: clean
-	@BUIDL_MOD=true
 	$(MAKE) mod -C plugins/NeuralRecord
 
 ifneq ($(CROSS_COMPILING),true)

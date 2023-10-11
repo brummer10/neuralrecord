@@ -19,7 +19,8 @@
                       <http://kxstudio.sf.net/ns/lv2ext/programs#Interface> ;
 
     lv2:optionalFeature <http://lv2plug.in/ns/lv2core#hardRTCapable> ,
-                        <http://lv2plug.in/ns/ext/buf-size#boundedBlockLength> ;
+                        <http://lv2plug.in/ns/ext/buf-size#boundedBlockLength> ,
+                        <http://kx.studio/ns/lv2ext/control-input-port-change-request> ;
 
     lv2:requiredFeature opts:options ,
                         <http://lv2plug.in/ns/ext/urid#map> ;

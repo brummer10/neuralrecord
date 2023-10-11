@@ -11,7 +11,6 @@ NAME = neuralrecord
 
 # --------------------------------------------------------------
 # Plugin types to build
-ifeq ($(BUILD_MOD),false)
 BUILD_LV2 ?= true
 BUILD_VST2 ?= false
 BUILD_VST3 ?= true
@@ -19,8 +18,6 @@ BUILD_CLAP ?= false
 BUILD_JACK ?= true
 BUILD_DSSI ?= false
 BUILD_LADSPA ?= false
-endif
-
 
 # --------------------------------------------------------------
 # Files to build
@@ -42,7 +39,6 @@ BUILD_CXX_FLAGS += -pthread `pkg-config --cflags sndfile`  `pkg-config --libs sn
 # --------------------------------------------------------------
 # Enable all selected plugin types
 
-ifeq ($(BUILD_MOD),false)
 ifeq ($(BUILD_LV2),true)
 ifeq ($(HAVE_CAIRO),true)
 TARGETS += lv2_sep
@@ -83,11 +79,6 @@ ifeq ($(BUILD_LADSPA),true)
 TARGETS += ladspa
 endif
 
-else
-BUILD_LV2 = true
-TARGETS += lv2_dsp
-endif
-
 all: $(TARGETS)
 ifeq ($(BUILD_VST3),true)
 	@cp -r resources  $(TARGET_DIR)/$(NAME).vst3/Contents/x86_64-linux/
@@ -96,7 +87,7 @@ ifeq ($(BUILD_LV2),true)
 	@cp -r resources  $(TARGET_DIR)/$(NAME).lv2/
 endif
 
-mod: $(TARGETS)
+mod: lv2_dsp
 ifeq ($(BUILD_LV2),true)
 	@cp -r resources  $(TARGET_DIR)/$(NAME).lv2/
 	@cp -r MOD/*  $(TARGET_DIR)/$(NAME).lv2/
@@ -132,7 +123,8 @@ endif
 ifeq ($(BUILD_LV2),true)
 	@mkdir -p -m755 $(DESTDIR)$(LV2_DIR)/$(NAME).lv2 && \
 	  install -m755 $(TARGET_DIR)/$(NAME).lv2/*$(LIB_EXT) $(DESTDIR)$(LV2_DIR)/$(NAME).lv2 && \
-	  install -m644 $(TARGET_DIR)/$(NAME).lv2/*.ttl $(DESTDIR)$(LV2_DIR)/$(NAME).lv2
+	  install -m644 $(TARGET_DIR)/$(NAME).lv2/*.ttl $(DESTDIR)$(LV2_DIR)/$(NAME).lv2 && \
+	  cp -r $(TARGET_DIR)/$(NAME).lv2/resources $(DESTDIR)$(LV2_DIR)/$(NAME).lv2
 endif
 ifeq ($(BUILD_JACK),true)
 ifeq ($(HAVE_JACK),true)
