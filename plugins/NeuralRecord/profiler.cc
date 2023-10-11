@@ -245,7 +245,7 @@ inline std::string Profil::get_path() {
     std::string pPath;
 
 #ifndef  __MOD_DEVICES__
-#if defined(WIN32) || defined(_WIN32)
+#ifdef _WIN32
     pPath = getenv("USERPROFILE");
     if (pPath.empty()) {
         pPath = getenv("HOMEDRIVE");
@@ -254,15 +254,16 @@ inline std::string Profil::get_path() {
 #else
     pPath = getenv("HOME");
 #endif
-    pPath +=PATH_SEPARATOR;
-    pPath +="profiles";
-    pPath +=PATH_SEPARATOR;
-
+    pPath += PATH_SEPARATOR "profiles" PATH_SEPARATOR;
 #else
-    pPath = "/data/user-files/Audio Recordings/profiles/";
+    if (const char* const userFilesDir = std::getenv("MOD_USER_FILES_DIR"))
+        pPath = userFilesDir;
+    else
+        pPath = "/data/user-files";
+    pPath += PATH_SEPARATOR "Audio Recordings" PATH_SEPARATOR "profiles" PATH_SEPARATOR;
 #endif
     if (!(stat(pPath.c_str(), &sb) == 0 && S_ISDIR(sb.st_mode))) {
-#if defined(WIN32) || defined(_WIN32)
+#ifdef _WIN32
         mkdir(pPath.c_str());
 #else
         mkdir(pPath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
@@ -282,10 +283,7 @@ inline std::string Profil::get_ifilename() {
     struct stat sb;
     char * path = strdup(get_profile_library_path().data());
     std::string iname = dirname(path);
-    iname += PATH_SEPARATOR;
-    iname += "resources";
-    iname += PATH_SEPARATOR;
-    iname += "input.wav";
+    iname += PATH_SEPARATOR "resources" PATH_SEPARATOR "input.wav";
     std::string oname = get_path() + "input.wav";
     if (stat (oname.c_str(), &sb) != 0 && stat (iname.c_str(), &sb) == 0) {
         std::ifstream src(iname.c_str(), std::ios::binary);

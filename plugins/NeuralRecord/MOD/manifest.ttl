@@ -12,6 +12,6 @@
 <urn:brummer10:neuralrecord#preset001>
     a pset:Preset ;
     lv2:appliesTo <urn:brummer10:neuralrecord> ;
-    rdfs:label "" ;
+    rdfs:label "Default" ;
     rdfs:seeAlso <presets.ttl> .
 
