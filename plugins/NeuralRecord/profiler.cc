@@ -226,7 +226,7 @@ Profil::~Profil() {
 
 // get the path were we are installed
 std::string get_profile_library_path() {
-#if defined(WIN32) || defined(_WIN32) 
+#ifdef _WIN32
     char buffer[MAX_PATH];
     GetModuleFileName( NULL, buffer, MAX_PATH );
     return std::string(buffer);
@@ -292,14 +292,15 @@ inline std::string Profil::get_ifilename() {
     return oname;
 }
 
+// convert included input.flac to wav file format and save it to path
 inline void  Profil::convert_to_wave(std::string fname, std::string oname) {
     if (tape1) { delete[] tape1; tape1 = 0; }
     int lsize = load_from_wave(fname); // load flac file
+
     SF_INFO sfinfo ;
     sfinfo.channels = channel;
     sfinfo.samplerate = fSamplingFreq;
     sfinfo.format = SF_FORMAT_WAV | SF_FORMAT_PCM_24;
-    
     SNDFILE * sf = sf_open(oname.c_str(), SFM_WRITE, &sfinfo);
     if (sf) {
         save_to_wave(sf, tape1, lsize);
@@ -428,6 +429,7 @@ inline void Profil::init(unsigned int samplingFreq) {
     fConst2 = 0.1;
     nf = 1.0;
     iRef = 0;
+    iRefSet = 0;
     fRef = 0.0000003;
     errors = 0.0;
     reset_errors = 0;
@@ -541,13 +543,13 @@ void always_inline Profil::compute(int count, const float *input0, float *output
         fbargraph1 = 0.0;
     }
 
-    // measure roundtrip latency, running 64 frames
+    // measure roundtrip latency, running 128 frames
     if (iSlow0 && !roundtrip) {
         mtdm_process (mtdm, count, input0, output0);
         measure++;
         if (measure < 128) return;
     }
-    // resolve roundtrip latency after 64 frames
+    // resolve roundtrip latency after 128 frames
     if (measure && !roundtrip) {
         // no signal comes in, stop the process here
         if (mtdm_resolve (mtdm) < 0) {
@@ -664,9 +666,17 @@ void always_inline Profil::compute(int count, const float *input0, float *output
         iRecb1[1] = iRecb1[0];
         fRecb0[1] = fRecb0[0];
     }
-    // vu-meter
-     iRef = !iRef;
-     fRef = iRef ? 0.0000003 : 0.00000031;
+    // peek-meter, when the level fails below threshold trigger a little variance for 24 circles
+    // to ensure that the value cross the event throttle boarder of the host.
+    if (fRecb2[0] < fRef) {
+        if (iRefSet < 24) {
+            iRef = !iRef;
+            fRef = iRef ? 0.0000003 : 0.00000031;
+            iRefSet++;
+        }
+     } else {
+         iRefSet = 0;
+     }
      fbargraph = 20.*log10(fmax(fRef,fRecb2[0]));
      setOutputParameterValue(METER, fbargraph);
     // progress bar
@@ -676,6 +686,7 @@ void always_inline Profil::compute(int count, const float *input0, float *output
         fbargraph1 = 0.0;
      setOutputParameterValue(STATE, fbargraph1);
      reset_errors++;
+     // rest error number to ensure we could show the same error again when needed
      if (reset_errors > 2000) {
          reset_errors = 0;
          setOutputParameterValue(ERRORS, errors);

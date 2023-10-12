@@ -117,7 +117,7 @@ void UINeuralCapture::sampleRateChanged(double newSampleRate) {
 void UINeuralCapture::getPathInfo(std::string &pInfo)
 {
 #ifndef  __MOD_DEVICES__
-#if defined(WIN32) || defined(_WIN32)
+#ifdef _WIN32
     pInfo = getenv("USERPROFILE");
     if (pInfo.empty()) {
         pInfo = getenv("HOMEDRIVE");

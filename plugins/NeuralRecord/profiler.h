@@ -125,6 +125,7 @@ private:
     int             iRecb1r[2];
     float           fRecb2r[2];
     int             iRef;
+    int             iRefSet;
     float           fRef;
 
     void        mem_alloc();

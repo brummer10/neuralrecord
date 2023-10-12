@@ -29,7 +29,6 @@
                          <http://lv2plug.in/ns/ext/buf-size#maxBlockLength> ,
                          <http://lv2plug.in/ns/ext/parameters#sampleRate> ;
 
-    ui:ui <urn:brummer10:neuralrecord#DPF_UI> ;
 
     lv2:port [
         a lv2:InputPort, lv2:AudioPort ;
@@ -85,7 +84,38 @@
         lv2:maximum 4 ;
     ] ;
 
-    rdfs:comment "A Neural Record plug to make the process of cloning external soft/hardware a bit more comfortable " ;
+    rdfs:comment  """
+Neural Record, a plug to make the process of cloning external soft/hardware a bit more comfortable. 
+
+It features a round trip measurement routine. 
+This allows to load the plug, connect the output to the system output, 
+loop over external gear (soft or hardware) back over the System Input to the Neural Record input.
+
+Simply press "Capture" to play the "input.wav" file to the output and record the returning input 
+delayed by the measured round trip latency. 
+
+Resulting recorded "target.wav" file will be perfectly in sync with the used "input.wav" file. 
+Currently, both files would be saved under "/data/user-files/Audio Recordings/profiles/". 
+The "target.wav" file will be overwritten on each capture run, so there will be always only one target file.
+You need to download it from the device in order to use it with the AIDA-X or the NAM trainer.
+
+The round-trip latency will be measured on each "Capture" start. 
+
+The "input.wav" file comes as resource with the plug and get copied over to 
+"/data/user-files/Audio Recordings/profiles/", when no input.wav file was found there. 
+This allows advanced users to use their own input.wav file by simply replace the one in that folder. 
+
+The target.wav file get checked during record and run to a normalisation function when needed. 
+(Only when the max peek in target is above the max peek in input). 
+
+The record will be saved in the PCM24 wav format (same as the input.wav file).
+
+The UI provide a progress bar, a peek-meter and, well the capture button.
+
+Features:
+Developed by Brummer
+
+""";
 
     mod:brand "brummer" ;
     mod:label "Neural Record" ;
