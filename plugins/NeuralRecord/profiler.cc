@@ -666,12 +666,14 @@ void always_inline Profil::compute(int count, const float *input0, float *output
         iRecb1[1] = iRecb1[0];
         fRecb0[1] = fRecb0[0];
     }
-    // peek-meter, when the level fails below threshold trigger a little variance for 24 circles
-    // to ensure that the value cross the event throttle boarder of the host.
+    // peek-meter, when the level fails below threshold trigger a little variance every 12 circle
+    // that reduce the I/O trafic but ensure that the value cross the event throttle boarder.
+    // This is needed because the peek-meter use a falloff offset for smoother display the level.
     if (fRecb2[0] < fRef) {
-        if (iRefSet < 24) {
+        if (iRefSet > 12) {
             iRef = !iRef;
             fRef = iRef ? 0.0000003 : 0.00000031;
+        } else {
             iRefSet++;
         }
      } else {
