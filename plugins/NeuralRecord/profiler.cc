@@ -19,6 +19,10 @@
 
 #include "profiler.h"
 
+#ifdef USING_DPF
+#include "DistrhoPluginUtils.hpp"
+#endif
+
 namespace profiler {
 
 
@@ -238,9 +242,17 @@ Profil::~Profil() {
 #endif
 }
 
+#ifdef USING_DPF
+// when using dpf, we already have ways to do this
+std::string get_profile_library_path() {
+    return getBinaryFilename();
+}
+#else
+// can be useful for non-dpf builds
 #ifdef _WIN32
 static HINSTANCE gInstance;
 
+extern "C" __declspec (dllexport)
 BOOL WINAPI DllMain (HINSTANCE hInst, DWORD reason, LPVOID)
 {
     if (reason == DLL_PROCESS_ATTACH)
@@ -264,6 +276,7 @@ std::string get_profile_library_path() {
 #endif
     return std::string();
 }
+#endif
 
 // get the path were to save the recording and the input file
 inline std::string Profil::get_path() {
