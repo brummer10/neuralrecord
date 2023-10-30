@@ -23,7 +23,6 @@
 #define PROFILER_H
 
 #include <unistd.h>
-#include <semaphore.h>
 #include <fcntl.h>
 #include <pthread.h>
 #include <sys/stat.h>
@@ -45,6 +44,7 @@
 #include <windows.h>
 #else
 #include <dlfcn.h>
+#include <semaphore.h>
 #endif
 
 #include <fstream>
@@ -107,13 +107,18 @@ private:
     float           *fRec1;
     float           *tape;
     float           *tape1;
+#ifdef _WIN32
+    HANDLE          m_trig;
+#else
     sem_t           *m_trig;
+#endif
     pthread_t       m_pthr;
     int32_t         rt_prio;
     int32_t         rt_policy;
     volatile bool   keep_stream;
     bool            mem_allocated;
     bool            err;
+    bool            running;
     float           fConst0;
     float           fConst1;
     float           fConst2;
