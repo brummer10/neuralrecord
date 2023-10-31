@@ -19,6 +19,10 @@
 
 #include "profiler.h"
 
+#ifdef USING_DPF
+#include "DistrhoPluginUtils.hpp"
+#endif
+
 namespace profiler {
 
 
@@ -207,13 +211,21 @@ Profil::Profil(int channel_, std::function<void(const uint32_t , float) > setOut
       keep_stream(false),
       mem_allocated(false),
       err(false),
+      running(false),
       setOutputParameterValue(setOutputParameterValue_),
       requestParameterValueChange(requestParameterValueChange_) {
+#ifdef _WIN32
+    m_trig = CreateSemaphore(NULL, 0, 1, "Local\\nrecord");
+    if(!m_trig){
+        err = true;
+    }
+#else
     sem_unlink("/nrecord");
     m_trig = sem_open("/nrecord", O_CREAT|O_EXCL, S_IRWXU, 0);
     if(m_trig == SEM_FAILED){
         err = true;
     }
+#endif
 }
 
 
@@ -221,23 +233,50 @@ Profil::~Profil() {
     stop_thread();
     free(mtdm);
     activate(false);
+#ifdef _WIN32
+    if (m_trig) {
+        CloseHandle(m_trig);
+    }
+#else
     sem_unlink("/nrecord");
+#endif
 }
+
+#ifdef USING_DPF
+// when using dpf, we already have ways to do this
+std::string get_profile_library_path() {
+    return getBinaryFilename();
+}
+#else
+// can be useful for non-dpf builds
+#ifdef _WIN32
+static HINSTANCE gInstance;
+
+extern "C" __declspec (dllexport)
+BOOL WINAPI DllMain (HINSTANCE hInst, DWORD reason, LPVOID)
+{
+    if (reason == DLL_PROCESS_ATTACH)
+        gInstance = hInst;
+    return 1;
+}
+#endif
 
 // get the path were we are installed
 std::string get_profile_library_path() {
 #ifdef _WIN32
-    char buffer[MAX_PATH];
-    GetModuleFileName( NULL, buffer, MAX_PATH );
-    return std::string(buffer);
+    WCHAR wbuffer[MAX_PATH] = {};
+    CHAR abuffer[MAX_PATH] = {};
+    GetModuleFileNameW(gInstance, wbuffer, MAX_PATH);
+    if (WideCharToMultiByte(CP_UTF8, 0, wbuffer, -1, abuffer, MAX_PATH, NULL, NULL))
+        return std::string(abuffer);
 #else
     Dl_info dl_info;
     if(0 != dladdr((void*)get_profile_library_path, &dl_info))
         return std::string(dl_info.dli_fname);
-    else
-        return std::string();
 #endif
+    return std::string();
 }
+#endif
 
 // get the path were to save the recording and the input file
 inline std::string Profil::get_path() {
@@ -245,29 +284,39 @@ inline std::string Profil::get_path() {
     std::string pPath;
 
 #ifndef  __MOD_DEVICES__
-#ifdef _WIN32
+   #ifdef _WIN32
     pPath = getenv("USERPROFILE");
     if (pPath.empty()) {
         pPath = getenv("HOMEDRIVE");
         pPath +=  getenv("HOMEPATH");
     }
-#else
+   #else
     pPath = getenv("HOME");
-#endif
+   #endif
     pPath += PATH_SEPARATOR "profiles" PATH_SEPARATOR;
-#else
+#else // __MOD_DEVICES__
+   #ifdef _WIN32
+    WCHAR wpath[MAX_PATH] = {};
+    DWORD wpathlen = GetEnvironmentVariableW(L"MOD_USER_FILES_DIR", wpath, MAX_PATH);
+    if (wpathlen <= 0)
+        return {};
+    pPath.resize(wpathlen);
+    WideCharToMultiByte(CP_UTF8, 0, wpath, wpathlen, &pPath[0], MAX_PATH, NULL, NULL);
+   #else
     if (const char* const userFilesDir = std::getenv("MOD_USER_FILES_DIR"))
         pPath = userFilesDir;
     else
         pPath = "/data/user-files";
+   #endif
     pPath += PATH_SEPARATOR "Audio Recordings" PATH_SEPARATOR "profiles" PATH_SEPARATOR;
-#endif
+#endif // __MOD_DEVICES__
+
     if (!(stat(pPath.c_str(), &sb) == 0 && S_ISDIR(sb.st_mode))) {
-#ifdef _WIN32
+       #ifdef _WIN32
         mkdir(pPath.c_str());
-#else
+       #else
         mkdir(pPath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-#endif
+       #endif
     }
 
     return pPath;
@@ -337,8 +386,15 @@ inline int Profil::load_from_wave(std::string fname) {
 
 // save the chunks to disk
 void Profil::disc_stream() {
-    for (;;) {
+    for (;running;) {
+#ifdef _WIN32
+        WaitForSingleObject(m_trig, INFINITE);
+#else
         sem_wait(m_trig);
+#endif
+        if (!running) {
+            break;
+        }
         if (!recfile) {
             std::string fname = get_ffilename();
             recfile = open_stream(fname);
@@ -366,6 +422,14 @@ void *Profil::run_thread(void *p) {
 
 // stop the recording thread
 void Profil::stop_thread() {
+    if (running) {
+        running = false;
+#ifdef _WIN32
+        ReleaseSemaphore(m_trig, 1, NULL);
+#else
+        sem_post(m_trig);
+#endif
+    }
     pthread_cancel (m_pthr);
     pthread_join (m_pthr, NULL);
 }
@@ -391,9 +455,11 @@ void Profil::start_thread() {
     pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
     pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);
     // pthread_attr_setstacksize(&attr, 0x10000);
+    running = true;
     if (pthread_create(&m_pthr, &attr, run_thread,
                        reinterpret_cast<void*>(this))) {
         err = true;
+        running = false;
     }
     pthread_attr_destroy(&attr);
 }
@@ -620,7 +686,11 @@ void always_inline Profil::compute(int count, const float *input0, float *output
                 tape = iA ? fRec0 : fRec1;
                 keep_stream = true;
                 savesize = IOTA;
+#ifdef _WIN32
+                ReleaseSemaphore(m_trig, 1, NULL);
+#else
                 sem_post(m_trig);
+#endif
                 IOTA = 0;
             }
             // play input.wav file once
@@ -652,7 +722,11 @@ void always_inline Profil::compute(int count, const float *input0, float *output
             tape = iA ? fRec1 : fRec0;
             savesize = IOTA;
             keep_stream = false;
+#ifdef _WIN32
+            ReleaseSemaphore(m_trig, 1, NULL);
+#else
             sem_post(m_trig);
+#endif
             IOTA = 0;
             iA = 0;
             IOTAP = 0;
