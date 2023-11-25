@@ -44,11 +44,15 @@
 #include <windows.h>
 #else
 #include <dlfcn.h>
-#include <semaphore.h>
 #endif
 
 #include <fstream>
 #include <functional>
+
+#include <atomic>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
 
 
 namespace profiler {
@@ -78,13 +82,31 @@ struct MTDM
     struct Freq _freq [13];
 };
 
+class Profil;
+
+class ProfilWorker {
+private:
+    std::atomic<bool> _execute;
+    std::thread _thd;
+    std::mutex m;
+
+public:
+    ProfilWorker();
+    ~ProfilWorker();
+    void stop();
+    void start(Profil *pt);
+    bool is_running() const noexcept;
+    std::condition_variable cv;
+};
 
 class Profil {
 private:
     SNDFILE *       recfile;
     SNDFILE *       playfile;
     std::string     inputfile;
+    std::string     outputfile;
     struct MTDM     *mtdm;
+    ProfilWorker    worker;
     int             fSamplingFreq;
     int             channel;
     float           fcheckbox0;
@@ -107,18 +129,10 @@ private:
     float           *fRec1;
     float           *tape;
     float           *tape1;
-#ifdef _WIN32
-    HANDLE          m_trig;
-#else
-    sem_t           *m_trig;
-#endif
-    pthread_t       m_pthr;
-    int32_t         rt_prio;
-    int32_t         rt_policy;
     volatile bool   keep_stream;
     bool            mem_allocated;
     bool            err;
-    bool            running;
+    bool            time_match;
     float           fConst0;
     float           fConst1;
     float           fConst2;
@@ -142,12 +156,9 @@ private:
     void        save_to_wave(SNDFILE * sf, float *tape, int lSize);
     SNDFILE     *open_stream(std::string fname);
     void        close_stream(SNDFILE **sf);
-    void        stop_thread();
-    void        start_thread();
     void        disc_stream();
     void        connect(uint32_t port, float data);
     void        normalize();
-    static void *run_thread(void* p);
     inline int  load_from_wave(std::string fname);
     inline void  convert_to_wave(std::string fname, std::string oname);
     inline std::string get_path(); 
@@ -157,7 +168,7 @@ private:
     std::function<void(const uint32_t, float) > requestParameterValueChange;
 
 public:
-    void        set_thread_prio(int32_t prio, int32_t policy);
+    static void run_thread(void* p);
     static void clear_state(Profil*);
     static int  activate_plugin(bool start, Profil*);
     static void set_samplerate(unsigned int samplingFreq, Profil*);
